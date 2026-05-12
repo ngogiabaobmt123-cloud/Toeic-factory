@@ -152,14 +152,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 window.alert('⚠️ CƠ SỞ DỮ LIỆU CHƯA ĐƯỢC CẬP NHẬT!\n\nBạn chưa thêm cột cho các tính năng mới. Vui lòng vào SQL Editor của Supabase để chạy lệnh:\n\nALTER TABLE users ADD COLUMN IF NOT EXISTS "internCost" numeric, ADD COLUMN IF NOT EXISTS "internBuffExpiresAt" numeric, ADD COLUMN IF NOT EXISTS "diamonds" numeric DEFAULT 0, ADD COLUMN IF NOT EXISTS "totalWrongCount" numeric DEFAULT 0, ADD COLUMN IF NOT EXISTS "achievements" jsonb, ADD COLUMN IF NOT EXISTS "lastSeasonReset" text;\n\nHệ thống sẽ tạm thời lưu ở bộ nhớ trình duyệt để bảo toàn tiến trình của bạn.');
                 window.sessionStorage.setItem('db_column_error_shown', 'true');
             }
-            // Retry without the problematic columns
-            const fallbackPayload = { ...currentPayload };
-            delete fallbackPayload.internCost;
-            delete fallbackPayload.internBuffExpiresAt;
-            delete fallbackPayload.diamonds;
-            delete fallbackPayload.totalWrongCount;
-            delete fallbackPayload.achievements;
-            delete fallbackPayload.lastSeasonReset;
+            // Tối giản hóa payload chỉ giữ lại các cột mặc định chắc chắn tồn tại trên DB cũ
+            const fallbackPayload = { 
+                id: currentPayload.id,
+                displayName: currentPayload.displayName,
+                balance: currentPayload.balance,
+                xp: currentPayload.xp,
+                level: currentPayload.level,
+                incomePerMinute: currentPayload.incomePerMinute,
+                factories: currentPayload.factories,
+                completedQuestions: currentPayload.completedQuestions,
+                lastLogin: currentPayload.lastLogin,
+                dailyQuests: currentPayload.dailyQuests,
+                currentStreak: currentPayload.currentStreak,
+                dailyCorrectCount: currentPayload.dailyCorrectCount,
+                lastQuestReset: currentPayload.lastQuestReset,
+            };
             if (retryCount < 2) {
                 setTimeout(() => performUpsert(retryCount + 1, fallbackPayload), 1000);
             }
