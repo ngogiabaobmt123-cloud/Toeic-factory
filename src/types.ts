@@ -82,6 +82,7 @@ export interface UserStats {
   activeWordIds?: string[];
   currentQuestionIndex?: number;
   recentWordIds?: string[];
+  lastSeasonReset?: string;
 }
 
 export interface UserFactory {

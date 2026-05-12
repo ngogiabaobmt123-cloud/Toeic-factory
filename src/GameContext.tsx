@@ -149,7 +149,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Missing DB columns. You need to run ALTER TABLE users ADD COLUMN "diamonds" numeric DEFAULT 0...');
             // Prevent spamming the alert
             if (!window.sessionStorage.getItem('db_column_error_shown')) {
-                window.alert('⚠️ CƠ SỞ DỮ LIỆU CHƯA ĐƯỢC CẬP NHẬT!\n\nBạn chưa thêm cột cho tính năng Kim Cương và Thực Tập Sinh. Vui lòng vào SQL Editor của Supabase để chạy lệnh:\n\nALTER TABLE users ADD COLUMN "internCost" numeric, ADD COLUMN "internBuffExpiresAt" numeric, ADD COLUMN "diamonds" numeric DEFAULT 0, ADD COLUMN "totalWrongCount" numeric DEFAULT 0, ADD COLUMN "achievements" jsonb;\n\nHệ thống sẽ tạm thời lưu ở bộ nhớ trình duyệt để bảo toàn tiến trình của bạn.');
+                window.alert('⚠️ CƠ SỞ DỮ LIỆU CHƯA ĐƯỢC CẬP NHẬT!\n\nBạn chưa thêm cột cho các tính năng mới. Vui lòng vào SQL Editor của Supabase để chạy lệnh:\n\nALTER TABLE users ADD COLUMN IF NOT EXISTS "internCost" numeric, ADD COLUMN IF NOT EXISTS "internBuffExpiresAt" numeric, ADD COLUMN IF NOT EXISTS "diamonds" numeric DEFAULT 0, ADD COLUMN IF NOT EXISTS "totalWrongCount" numeric DEFAULT 0, ADD COLUMN IF NOT EXISTS "achievements" jsonb, ADD COLUMN IF NOT EXISTS "lastSeasonReset" text;\n\nHệ thống sẽ tạm thời lưu ở bộ nhớ trình duyệt để bảo toàn tiến trình của bạn.');
                 window.sessionStorage.setItem('db_column_error_shown', 'true');
             }
             // Retry without the problematic columns
@@ -159,6 +159,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             delete fallbackPayload.diamonds;
             delete fallbackPayload.totalWrongCount;
             delete fallbackPayload.achievements;
+            delete fallbackPayload.lastSeasonReset;
             if (retryCount < 2) {
                 setTimeout(() => performUpsert(retryCount + 1, fallbackPayload), 1000);
             }
@@ -246,7 +247,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 luckyBuffExpiresAt: userData.luckyBuffExpiresAt || 0,
                 luckyCost: userData.luckyCost || 100,
                 internBuffExpiresAt: userData.internBuffExpiresAt || 0,
-                internCost: userData.internCost || 100
+                internCost: userData.internCost || 100,
+                lastSeasonReset: userData.lastSeasonReset || new Date().toISOString().slice(0, 7)
             };
             setUser(mergedUser);
         } else {
@@ -281,7 +283,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 luckyBuffExpiresAt: 0,
                 luckyCost: 100,
                 internBuffExpiresAt: 0,
-                internCost: 100
+                internCost: 100,
+                lastSeasonReset: new Date().toISOString().slice(0, 7)
             };
             setUser(newUser);
             syncToSupabase(newUser, true); // Force sync for new user creation
@@ -528,6 +531,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 dailyQuests: updatedQuests,
                 currentStreak: 0,
                 dailyCorrectCount: 0,
+            };
+            syncToSupabase(updated);
+            return updated;
+        });
+    }
+  }, [user?.uid]);
+
+  // Seasonal reset (Monthly on the first day of each month) logic
+  useEffect(() => {
+    if (!user) return;
+    const currentMonth = new Date().toISOString().slice(0, 7); // e.g. "2026-05"
+    if (user.lastSeasonReset !== currentMonth) {
+        setUser(prev => {
+            if (!prev) return null;
+            // "kho vẫn giữ nguyên để hệ thống ghi lại những từ đã học chứ không học lại từ đầu chỉ có mọi trạng thái nhà máy xóa hết"
+            // Reset achievements so players can claim seasonal rewards again
+            const updated = { 
+                ...prev, 
+                lastSeasonReset: currentMonth,
+                factories: [],
+                incomePerMinute: 0,
+                achievements: INITIAL_ACHIEVEMENTS,
             };
             syncToSupabase(updated);
             return updated;
