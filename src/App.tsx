@@ -59,27 +59,30 @@ export const playAudio = (text: string) => {
   window.speechSynthesis.speak(utterance);
 };
 
-// Icon helper for factories
+// Emoji helper for factories - much more visual!
+const FACTORY_EMOJI: Record<string, string> = {
+    'Soup': '🍜',
+    'Footprints': '🩴',
+    'Coffee': '☕',
+    'Croissant': '🧋',
+    'Landmark': '🏛️',
+    'Utensils': '🍳',
+    'Languages': '📚',
+    'Sparkles': '✨',
+    'HardHat': '🏗️',
+    'Cpu': '💻',
+    'Bike': '🚲',
+    'Smartphone': '📱',
+    'CarFront': '🚗',
+    'Rocket': '🚀',
+    'Sun': '☀️',
+    'Infinity': '♾️',
+};
+
 const FactoryIcon = ({ name, size = 20, className = "" }: { name: string, size?: number, className?: string }) => {
-    switch (name) {
-        case 'Soup': return <Soup size={size} className={className} />;
-        case 'Footprints': return <Footprints size={size} className={className} />;
-        case 'Coffee': return <Coffee size={size} className={className} />;
-        case 'Croissant': return <Croissant size={size} className={className} />;
-        case 'Landmark': return <Landmark size={size} className={className} />;
-        case 'Utensils': return <Soup size={size} className={className} />;
-        case 'Languages': return <BookOpen size={size} className={className} />;
-        case 'Sparkles': return <Award size={size} className={className} />;
-        case 'HardHat': return <Factory size={size} className={className} />;
-        case 'Cpu': return <Zap size={size} className={className} />;
-        case 'Bike': return <Bike size={size} className={className} />;
-        case 'Smartphone': return <Smartphone size={size} className={className} />;
-        case 'CarFront': return <CarFront size={size} className={className} />;
-        case 'Rocket': return <Rocket size={size} className={className} />;
-        case 'Sun': return <Sun size={size} className={className} />;
-        case 'Infinity': return <Infinity size={size} className={className} />;
-        default: return <Factory size={size} className={className} />;
-    }
+    const emoji = FACTORY_EMOJI[name] || '🏭';
+    const fontSize = size >= 28 ? 'factory-emoji-lg' : 'factory-emoji';
+    return <span className={`${fontSize} ${className}`} role="img">{emoji}</span>;
 };
 
 const useCountdown = (targetDate?: number) => {
@@ -111,7 +114,7 @@ const useCountdown = (targetDate?: number) => {
     return timeLeft;
 };
 
-// --- AUTH COMPONENT --- (leave unchanged)
+// --- AUTH COMPONENT --- Premium Redesign
 const Auth = () => {
   const { register, login, loginAnonymously } = useGame();
   const [isRegister, setIsRegister] = useState(false);
@@ -127,107 +130,106 @@ const Auth = () => {
     }
   };
 
+  const floatingItems = ['🏭', '📚', '💎', '🏆', '⚡', '🎯', '🔥', '💰'];
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-purple-600 rounded-full blur-[100px] opacity-30 animate-pulse"></div>
-      <div className="absolute bottom-1/4 -right-20 w-64 h-64 bg-blue-600 rounded-full blur-[100px] opacity-30 animate-pulse delay-700"></div>
+      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-indigo-600 rounded-full blur-[150px] opacity-30 animate-float"></div>
+      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-purple-600 rounded-full blur-[150px] opacity-25" style={{ animationDelay: '1.5s', animation: 'float 4s ease-in-out infinite' }}></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600 rounded-full blur-[180px] opacity-15"></div>
+
+      {floatingItems.map((emoji, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-3xl opacity-10 pointer-events-none select-none"
+          style={{ left: `${10 + (i * 12) % 80}%`, top: `${5 + (i * 17) % 85}%` }}
+          animate={{ y: [0, -20, 0], rotate: [0, 10, -10, 0], opacity: [0.05, 0.15, 0.05] }}
+          transition={{ repeat: Infinity, duration: 4 + i * 0.5, delay: i * 0.3 }}
+        >
+          {emoji}
+        </motion.div>
+      ))}
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md glass-card p-10 rounded-[40px] text-white z-10"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+        className="w-full max-w-md z-10"
       >
-        <div className="text-center mb-10">
-          <motion.div 
-            animate={{ rotate: [0, 10, -10, 0] }} 
-            transition={{ repeat: Infinity, duration: 4 }}
-            className="inline-block p-4 rounded-3xl bg-white/10 mb-4"
-          >
-            <Factory size={40} className="text-blue-400" />
+        <div className="text-center mb-8">
+          <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="inline-block mb-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500 rounded-3xl blur-xl opacity-40"></div>
+              <div className="relative p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl shadow-blue-500/30">
+                <span className="text-4xl">🏭</span>
+              </div>
+            </div>
           </motion.div>
-          <h1 className="text-4xl font-black uppercase tracking-tighter italic bg-gradient-to-br from-white to-blue-300 bg-clip-text text-transparent pb-1 leading-tight">TOEIC Factory</h1>
-          <p className="text-blue-200/60 font-medium text-sm mt-2">Học tập đỉnh cao - Xây dựng đế chế</p>
+          <h1 className="text-5xl font-black uppercase tracking-tighter italic text-gradient-rainbow pb-1 leading-tight">TOEIC Factory</h1>
+          <p className="text-white/40 font-medium text-sm mt-2">Học tập đỉnh cao — Xây dựng đế chế 🚀</p>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-1">
-            <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2">ID Tài khoản (Nickname)</label>
-            <input 
-              type="text" 
-              required
-              placeholder="Nhập ID của bạn..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 transition-all text-sm"
-              value={formData.id}
-              onChange={e => setFormData({...formData, id: e.target.value})}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2">Mật khẩu</label>
-            <input 
-              type="password" 
-              required
-              placeholder="••••••••"
-              className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 transition-all text-sm"
-              value={formData.pass}
-              onChange={e => setFormData({...formData, pass: e.target.value})}
-            />
-          </div>
-          
-          <AnimatePresence>
-            {isRegister && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }} 
-                animate={{ height: 'auto', opacity: 1 }} 
-                exit={{ height: 0, opacity: 0 }}
-                className="space-y-5 overflow-hidden"
+        <div className="glass-card p-8 rounded-[32px] card-shine">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2 tracking-widest">🆔 ID Tài khoản</label>
+              <input type="text" required placeholder="Nhập ID của bạn..."
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/10 transition-all text-sm font-medium placeholder-white/20"
+                value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2 tracking-widest">🔑 Mật khẩu</label>
+              <input type="password" required placeholder="••••••••"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/10 transition-all text-sm font-medium placeholder-white/20"
+                value={formData.pass} onChange={e => setFormData({...formData, pass: e.target.value})}
+              />
+            </div>
+            
+            <AnimatePresence>
+              {isRegister && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-4 overflow-hidden">
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2 tracking-widest">🔒 Xác nhận mật khẩu</label>
+                    <input type="password" required placeholder="••••••••"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/10 transition-all text-sm font-medium placeholder-white/20"
+                      value={formData.confirmPass} onChange={e => setFormData({...formData, confirmPass: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2 tracking-widest">👤 Tên hiển thị</label>
+                    <input type="text" required placeholder="Biệt danh chiến trường..."
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 focus:shadow-lg focus:shadow-blue-500/10 transition-all text-sm font-medium placeholder-white/20"
+                      value={formData.displayName} onChange={e => setFormData({...formData, displayName: e.target.value})}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button type="submit"
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-black py-4 rounded-2xl uppercase mt-4 shadow-xl shadow-blue-500/30 transition-all active:scale-95 text-sm tracking-wider"
+            >
+              {isRegister ? '🚀 Khởi tạo đế chế' : '⚡ Truy cập nhà máy'}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-4 border-t border-white/5">
+            <p className="text-center text-sm font-medium text-white/30">
+              {isRegister ? 'Đã có tài khoản?' : 'Người mới?'} 
+              <button onClick={() => setIsRegister(!isRegister)}
+                className="ml-2 text-blue-400 hover:text-blue-300 font-bold underline underline-offset-4 transition-colors"
               >
-                <div className="space-y-1">
-                  <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2">Xác nhận mật khẩu</label>
-                  <input 
-                    type="password" 
-                    required
-                    placeholder="••••••••"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 transition-all text-sm"
-                    value={formData.confirmPass}
-                    onChange={e => setFormData({...formData, confirmPass: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="block text-[10px] uppercase font-black text-blue-300/60 ml-2">Tên hiển thị</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="Biệt danh hiển thị..."
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:bg-white/10 focus:border-blue-400/50 transition-all text-sm"
-                    value={formData.displayName}
-                    onChange={e => setFormData({...formData, displayName: e.target.value})}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <button 
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-400 text-white font-black py-4 rounded-2xl uppercase mt-4 shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-          >
-            {isRegister ? 'Khởi tạo đế chế' : 'Truy cập nhà máy'}
-          </button>
-        </form>
-
-        <p className="mt-8 text-center text-sm font-medium text-white/40">
-          {isRegister ? 'Đã có tài khoản?' : 'Người mới?'} 
-          <button 
-            onClick={() => setIsRegister(!isRegister)}
-            className="ml-2 text-blue-400 hover:text-blue-300 font-bold underline underline-offset-4"
-          >
-            {isRegister ? 'Đăng nhập ngay' : 'Đăng ký miễn phí'}
-          </button>
-        </p>
+                {isRegister ? 'Đăng nhập ngay' : 'Đăng ký miễn phí'}
+              </button>
+            </p>
+          </div>
+        </div>
       </motion.div>
     </div>
   );
 };
+
 
 const Dashboard = () => {
   const { user, factorySeconds, myRank, taxSubRate, collectIncome } = useGame();
@@ -240,34 +242,35 @@ const Dashboard = () => {
   const netWelfare = bonus + taxSubRate * 100 + (isCapitalistActive ? 50 : 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-slide-up">
       {/* Top Status Header */}
-      <div className="glass p-6 rounded-[32px] border border-white/10 flex flex-wrap items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <User size={24} className="text-white" />
+      <div className="glass p-6 rounded-[32px] border border-white/10 flex flex-wrap items-center justify-between gap-6 card-shine relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="flex items-center gap-4 relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 text-2xl">
+                👤
             </div>
             <div>
                 <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none">{user.displayName}</h2>
                 <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] font-black uppercase text-blue-400/60 tracking-widest">Đang trực tuyến</span>
-                    <div className="w-1 h-1 rounded-full bg-green-500"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
                 </div>
             </div>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
-                <Coins className="text-yellow-400" size={20} />
+        <div className="flex flex-wrap items-center gap-3 relative z-10">
+            <div className="flex items-center gap-3 bg-yellow-500/10 px-5 py-3 rounded-2xl border border-yellow-500/20 neon-yellow">
+                <span className="text-xl">💰</span>
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-white/30 leading-none mb-1">Số dư hiện tại</span>
-                    <span className="text-xl font-black font-mono text-white">${user.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="text-[10px] font-black uppercase text-yellow-300/50 leading-none mb-1">Số dư</span>
+                    <span className="text-lg font-black font-mono text-yellow-300">${user.balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                 </div>
             </div>
-            <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
-                <Gem className="text-cyan-400 animate-pulse" size={20} />
+            <div className="flex items-center gap-3 bg-cyan-500/10 px-5 py-3 rounded-2xl border border-cyan-500/20 neon-cyan">
+                <span className="text-xl animate-float">💎</span>
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-white/30 leading-none mb-1">Kim Cương</span>
-                    <span className="text-xl font-black font-mono text-cyan-300">{user.diamonds.toLocaleString()}</span>
+                    <span className="text-[10px] font-black uppercase text-cyan-300/50 leading-none mb-1">Kim Cương</span>
+                    <span className="text-lg font-black font-mono text-cyan-300">{user.diamonds.toLocaleString()}</span>
                 </div>
             </div>
         </div>
@@ -275,34 +278,35 @@ const Dashboard = () => {
 
       <div className="space-y-8">
         {/* Main Stats Area */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* XP Card */}
-            <div className="glass-card p-6 rounded-3xl border-l-4 border-l-blue-500 relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="glass-card p-6 rounded-3xl neon-blue relative overflow-hidden group card-shine">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                <div className="flex justify-between items-start mb-4 relative z-10">
                   <div>
-                    <span className="text-[10px] uppercase font-black text-blue-300/60 block mb-1">Cấp độ chuyên môn</span>
+                    <span className="text-[10px] uppercase font-black text-blue-300/60 block mb-1">⚡ Cấp độ</span>
                     <span className="text-3xl font-black italic tracking-tighter">Level {user.level}</span>
                   </div>
-                  <div className="bg-blue-500/20 p-2 rounded-xl border border-blue-400/30">
-                    <TrendingUp size={24} className="text-blue-400" />
+                  <div className="bg-blue-500/20 p-2.5 rounded-xl border border-blue-400/30 text-xl">
+                    📊
                   </div>
                </div>
-               <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/10 mb-2">
+               <div className="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/10 mb-2">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
-                    className="h-full bg-gradient-to-r from-blue-600 to-cyan-400"
+                    className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 rounded-full"
+                    transition={{ type: 'spring', damping: 20, stiffness: 100 }}
                   ></motion.div>
                </div>
                <div className="flex justify-between font-black text-[10px] uppercase tracking-wider text-blue-200/50">
-                  <span>{user.xp} XP đã tích lũy</span>
-                  <span>Mục tiêu {xpToNext} XP</span>
+                  <span>{user.xp} XP</span>
+                  <span>{xpToNext} XP</span>
                </div>
             </div>
 
             {/* Profit Bonus Card */}
-            <div className={`glass-card p-6 rounded-3xl border-l-4 relative overflow-hidden group ${netWelfare < 0 ? 'border-l-red-500' : 'border-l-green-500'}`}>
+            <div className={`glass-card p-6 rounded-3xl relative overflow-hidden group card-shine ${netWelfare < 0 ? 'neon-red' : 'neon-green'}`}>
                <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 ${netWelfare < 0 ? 'bg-red-500/5' : 'bg-green-500/5'}`}></div>
                <div className="flex justify-between items-start mb-4 relative z-10">
                   <div>
@@ -311,8 +315,8 @@ const Dashboard = () => {
                         {netWelfare > 0 ? '+' : ''}{netWelfare.toFixed(0)}%
                     </span>
                   </div>
-                  <div className={`p-2 rounded-xl border ${netWelfare < 0 ? 'bg-red-500/20 border-red-400/30' : 'bg-green-500/20 border-green-400/30'}`}>
-                    <Zap size={24} className={netWelfare < 0 ? 'text-red-400' : 'text-green-400'} />
+                  <div className={`p-2.5 rounded-xl border text-xl ${netWelfare < 0 ? 'bg-red-500/20 border-red-400/30' : 'bg-green-500/20 border-green-400/30'}`}>
+                    {netWelfare < 0 ? '📉' : '📈'}
                   </div>
                </div>
                <div className="space-y-2 relative z-10">
@@ -345,9 +349,9 @@ const Dashboard = () => {
             </div>
 
             {/* Rank Card */}
-            <div className={`glass-card p-6 rounded-3xl border border-white/5 relative overflow-hidden transition-all flex flex-col justify-between items-center text-center ${myRank <= 3 ? 'bg-gradient-to-br from-yellow-500/10 to-transparent border-yellow-500/20' : ''}`}>
+            <div className={`glass-card p-6 rounded-3xl relative overflow-hidden transition-all flex flex-col justify-between items-center text-center card-shine ${myRank <= 3 ? 'neon-yellow bg-gradient-to-br from-yellow-500/10 to-transparent' : 'border border-white/5'}`}>
                <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-               <span className="text-[10px] uppercase font-black text-white/30 block mb-2 tracking-widest italic z-10 w-full text-left">Xếp hạng doanh nhân</span>
+               <span className="text-[10px] uppercase font-black text-white/30 block mb-2 tracking-widest italic z-10 w-full text-left">🏆 Xếp hạng</span>
                <div className="flex-1 flex items-center justify-center relative z-10">
                   <span className={`text-6xl font-black italic tracking-tighter ${
                       myRank === 1 ? 'text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]' : 
@@ -361,11 +365,11 @@ const Dashboard = () => {
             </div>
 
             {/* Answer Reward Card */}
-            <div className="glass-card p-6 rounded-3xl border-l-4 border-l-purple-500 relative overflow-hidden group">
+            <div className="glass-card p-6 rounded-3xl neon-purple relative overflow-hidden group card-shine">
                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                <div className="flex justify-between items-start mb-4 relative z-10">
                   <div>
-                    <span className="text-[10px] uppercase font-black text-purple-300/60 block mb-1">Thưởng đáp đúng</span>
+                    <span className="text-[10px] uppercase font-black text-purple-300/60 block mb-1">🎯 Thưởng đáp đúng</span>
                     <span className="text-3xl font-black italic tracking-tighter text-purple-400">
                         {user.luckyBuffExpiresAt && user.luckyBuffExpiresAt > Date.now() ? (
                              <span className="text-yellow-400">+${((1 + user.level * 0.5) * 2).toFixed(1)} <span className="text-xs uppercase">(x2)</span></span>
@@ -374,12 +378,8 @@ const Dashboard = () => {
                         )}
                     </span>
                   </div>
-                  <div className={`p-2 rounded-xl border ${user.luckyBuffExpiresAt && user.luckyBuffExpiresAt > Date.now() ? 'bg-yellow-500/20 border-yellow-400/30' : 'bg-purple-500/20 border-purple-400/30'}`}>
-                    {user.luckyBuffExpiresAt && user.luckyBuffExpiresAt > Date.now() ? (
-                        <Flame size={24} className="text-yellow-400 animate-pulse" />
-                    ) : (
-                        <Target size={24} className="text-purple-400" />
-                    )}
+                  <div className={`p-2.5 rounded-xl border text-xl ${user.luckyBuffExpiresAt && user.luckyBuffExpiresAt > Date.now() ? 'bg-yellow-500/20 border-yellow-400/30' : 'bg-purple-500/20 border-purple-400/30'}`}>
+                    {user.luckyBuffExpiresAt && user.luckyBuffExpiresAt > Date.now() ? '🔥' : '🎯'}
                   </div>
                </div>
                <div className="space-y-4 relative z-10 mt-6">
@@ -1988,27 +1988,27 @@ const GameApp = () => {
                         <span className="text-[10px] font-black uppercase hidden sm:inline">{DIFFICULTY_CONFIG[user.currentDifficulty].label}</span>
                     </button>
                 )}
-                <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/30">
-                    <Factory size={24} className="text-white" />
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-600/30 text-xl">
+                    🏭
                 </div>
-                <h1 className="text-2xl font-black uppercase tracking-tighter italic hidden sm:block">TOEIC Factory</h1>
+                <h1 className="text-2xl font-black uppercase tracking-tighter italic hidden sm:block text-gradient-rainbow">TOEIC Factory</h1>
             </div>
             <div className="flex items-center gap-4">
                 {/* Global Currency Display */}
-                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-3 bg-white/5 px-4 py-2.5 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-1.5 text-yellow-400 font-mono font-black text-sm sm:text-base" title="Số dư Tiền USD">
-                        <Coins size={16} />
+                        <span>💰</span>
                         <span>${user.balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                     </div>
                     <div className="w-px h-4 bg-white/10"></div>
                     <div className="flex items-center gap-1.5 text-cyan-400 font-mono font-black text-sm sm:text-base" title="Kim Cương">
-                        <Gem size={16} className="animate-pulse" />
+                        <span className="animate-float">💎</span>
                         <span>{user.diamonds.toLocaleString()}</span>
                     </div>
                 </div>
 
                 <button onClick={logout} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-red-500/20 hover:border-red-500/30 transition-all text-white active:scale-95" title="Đăng xuất">
-                    <LogOut size={20} />
+                    <span className="text-lg">🚪</span>
                 </button>
             </div>
         </div>
@@ -2063,28 +2063,28 @@ const GameApp = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl bg-white/5 backdrop-blur-3xl border border-white/10 p-3 flex justify-around rounded-[40px] shadow-2xl z-50">
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-4xl bg-white/5 backdrop-blur-3xl border border-white/10 p-2 flex justify-around rounded-[32px] shadow-2xl z-50">
         {[
-            { id: 'dash', icon: <User size={20}/>, label: 'Trạng thái' },
-            { id: 'rank', icon: <Trophy size={20}/>, label: 'Xếp hạng' },
-            { id: 'shop', icon: <ShoppingBag size={20}/>, label: 'Cửa hàng' },
-            { id: 'earn', icon: <Pickaxe size={22}/>, label: 'Cày cuốc' },
-            { id: 'quest', icon: <ListTodo size={20}/>, label: 'Nhiệm vụ' },
-            { id: 'lib', icon: <BookOpen size={20}/>, label: 'Kho tri thức' }
+            { id: 'dash', icon: '📊', label: 'Trạng thái' },
+            { id: 'rank', icon: '🏆', label: 'Xếp hạng' },
+            { id: 'shop', icon: '🛍️', label: 'Cửa hàng' },
+            { id: 'earn', icon: '⛏️', label: 'Cày cuốc' },
+            { id: 'quest', icon: '📝', label: 'Nhiệm vụ' },
+            { id: 'lib', icon: '📚', label: 'Kho từ vựng' }
         ].map(tab => (
             <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex flex-col items-center gap-1 flex-1 transition-all py-3 px-2 rounded-3xl relative
+                className={`flex flex-col items-center gap-0.5 flex-1 transition-all py-2.5 px-2 rounded-2xl relative
                     ${activeTab === tab.id ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}
                 `}
             >
-                <div className={`${activeTab === tab.id ? 'scale-110 drop-shadow-glow' : ''} transition-transform`}>
+                <div className={`text-xl ${activeTab === tab.id ? 'scale-125 drop-shadow-glow' : 'grayscale opacity-60'} transition-all duration-200`}>
                     {tab.icon}
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-tight italic hidden md:block">{tab.label}</span>
                 {activeTab === tab.id && (
-                    <motion.div layoutId="nav-glow" className="absolute top-0 left-0 right-0 h-1 bg-blue-500 rounded-full blur-[2px] opacity-80" />
+                    <motion.div layoutId="nav-glow" className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-[2px] opacity-80" />
                 )}
             </button>
         ))}
