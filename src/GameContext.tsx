@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { UserStats, UserFactory, FACTORY_TEMPLATES, DailyQuest, Achievement } from './types';
+import { UserStats, UserFactory, FACTORY_TEMPLATES, DailyQuest, Achievement, DifficultyLevel } from './types';
 import { getUpdatedActivePool } from './vocabService';
 import { supabase } from './lib/supabase';
 
@@ -59,6 +59,8 @@ interface GameContextType {
   leaderboardLastUpdated: Date | null;
   totalUsers: number;
   fetchLeaderboard: () => Promise<void>;
+  setDifficulty: (level: DifficultyLevel) => void;
+  loginAnonymously?: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -220,6 +222,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userData) {
             console.log(`[Supabase] Data loaded from server (${docId})`);
             // Merge with defaults to ensure all fields exist even if DB columns are missing
+            // Migrate old wordProgress into per-difficulty if needed
+            const savedDifficulty: DifficultyLevel | undefined = userData.currentDifficulty || undefined;
+            let savedWPByDifficulty = userData.wordProgressByDifficulty || { easy: {}, intermediate: {}, hard: {} };
+            // If there's old wordProgress but no per-difficulty data, migrate it
+            if (userData.wordProgress && Object.keys(userData.wordProgress).length > 0 && savedDifficulty) {
+                const hasAnyPerDiff = Object.values(savedWPByDifficulty).some((v: any) => Object.keys(v || {}).length > 0);
+                if (!hasAnyPerDiff) {
+                    savedWPByDifficulty[savedDifficulty] = userData.wordProgress;
+                }
+            }
+            const activeWP = savedDifficulty ? (savedWPByDifficulty[savedDifficulty] || {}) : (userData.wordProgress || {});
+            const savedQIByDifficulty = userData.currentQuestionIndexByDifficulty || { easy: 0, intermediate: 0, hard: 0 };
+            const activeQI = savedDifficulty ? (savedQIByDifficulty[savedDifficulty] || 0) : (userData.currentQuestionIndex || 0);
+
             const mergedUser: UserStats = {
                 uid: docId,
                 displayName: userData.displayName || (session?.user.email?.split('@')[0] || "Người chơi mới"),
@@ -247,8 +263,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 charityCount: userData.charityCount || 0,
                 lastPayoutTimestamp: userData.lastPayoutTimestamp || Date.now(),
                 activeWordIds: userData.activeWordIds || [],
-                wordProgress: userData.wordProgress || {},
-                currentQuestionIndex: userData.currentQuestionIndex || 0,
+                wordProgress: activeWP,
+                wordProgressByDifficulty: savedWPByDifficulty,
+                currentQuestionIndex: activeQI,
+                currentQuestionIndexByDifficulty: savedQIByDifficulty,
                 recentWordIds: [],
                 capitalistBuffExpiresAt: userData.capitalistBuffExpiresAt || 0,
                 capitalistCost: userData.capitalistCost || 500,
@@ -256,7 +274,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 luckyCost: userData.luckyCost || 100,
                 internBuffExpiresAt: userData.internBuffExpiresAt || 0,
                 internCost: userData.internCost || 100,
-                lastSeasonReset: userData.lastSeasonReset || new Date().toISOString().slice(0, 7)
+                lastSeasonReset: userData.lastSeasonReset || new Date().toISOString().slice(0, 7),
+                currentDifficulty: savedDifficulty
             };
             setUser(mergedUser);
         } else {
@@ -284,7 +303,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 lastPayoutTimestamp: Date.now(),
                 activeWordIds: [],
                 wordProgress: {},
+                wordProgressByDifficulty: { easy: {}, intermediate: {}, hard: {} },
                 currentQuestionIndex: 0,
+                currentQuestionIndexByDifficulty: { easy: 0, intermediate: 0, hard: 0 },
                 recentWordIds: [],
                 capitalistBuffExpiresAt: 0,
                 capitalistCost: 500,
@@ -292,7 +313,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 luckyCost: 100,
                 internBuffExpiresAt: 0,
                 internCost: 100,
-                lastSeasonReset: new Date().toISOString().slice(0, 7)
+                lastSeasonReset: new Date().toISOString().slice(0, 7),
+                currentDifficulty: undefined
             };
             setUser(newUser);
             syncToSupabase(newUser, true); // Force sync for new user creation
@@ -604,13 +626,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         uid: uid,
         displayName,
         balance: 0,
+        diamonds: 0,
         xp: 0,
         level: 0,
         incomePerMinute: 0,
         factories: [],
         completedQuestions: 0,
+        totalWrongCount: 0,
         lastLogin: new Date(),
         dailyQuests: INITIAL_QUESTS.map(q => q.type === 'login' ? {...q, completed: true} : q),
+        achievements: INITIAL_ACHIEVEMENTS,
         currentStreak: 0,
         dailyCorrectCount: 0,
         lastQuestReset: new Date().toDateString(),
@@ -619,13 +644,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastPayoutTimestamp: Date.now(),
         activeWordIds: [],
         wordProgress: {},
+        wordProgressByDifficulty: { easy: {}, intermediate: {}, hard: {} },
         currentQuestionIndex: 0,
+        currentQuestionIndexByDifficulty: { easy: 0, intermediate: 0, hard: 0 },
+        recentWordIds: [],
         capitalistBuffExpiresAt: 0,
         capitalistCost: 500,
         luckyBuffExpiresAt: 0,
         luckyCost: 100,
         internBuffExpiresAt: 0,
-        internCost: 100
+        internCost: 100,
+        lastSeasonReset: new Date().toISOString().slice(0, 7),
+        currentDifficulty: undefined
       };
       
       setUser(newUser);
@@ -779,6 +809,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 leveledUp = true;
             }
 
+            // Also update per-difficulty storage
+            let newWPByDiff = { ...(prev.wordProgressByDifficulty || { easy: {}, intermediate: {}, hard: {} }) };
+            let newQIByDiff = { ...(prev.currentQuestionIndexByDifficulty || { easy: 0, intermediate: 0, hard: 0 }) };
+            if (prev.currentDifficulty) {
+                newWPByDiff[prev.currentDifficulty] = newWordProgress;
+                newQIByDiff[prev.currentDifficulty] = nextIdx;
+            }
+
             const updatedPool = getUpdatedActivePool(prev.activeWordIds, newWordProgress);
             const newRecentWordIds = [wordId, ...(prev.recentWordIds || [])].slice(0, 15);
             const updated: UserStats = { 
@@ -789,8 +827,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 level: newLevel,
                 totalWrongCount: prev.totalWrongCount + 1,
                 wordProgress: newWordProgress,
+                wordProgressByDifficulty: newWPByDiff,
                 activeWordIds: updatedPool,
                 currentQuestionIndex: nextIdx,
+                currentQuestionIndexByDifficulty: newQIByDiff,
                 recentWordIds: newRecentWordIds as string[]
             };
             syncToSupabase(updated);
@@ -870,6 +910,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             levelUpAudio.play().catch(() => {});
         }
 
+        // Also update per-difficulty storage
+        let newWPByDiff = { ...(prev.wordProgressByDifficulty || { easy: {}, intermediate: {}, hard: {} }) };
+        let newQIByDiff = { ...(prev.currentQuestionIndexByDifficulty || { easy: 0, intermediate: 0, hard: 0 }) };
+        if (prev.currentDifficulty) {
+            newWPByDiff[prev.currentDifficulty] = newWordProgress;
+            newQIByDiff[prev.currentDifficulty] = nextIdx;
+        }
+
         const updated: UserStats = {
             ...prev,
             balance: prev.balance + moneyGained,
@@ -881,8 +929,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dailyQuests: newQuests,
             missedWordIds: newMissedIds,
             wordProgress: newWordProgress,
+            wordProgressByDifficulty: newWPByDiff,
             activeWordIds: updatedPool,
             currentQuestionIndex: nextIdx,
+            currentQuestionIndexByDifficulty: newQIByDiff,
             recentWordIds: newRecentWordIds as string[]
         };
         
@@ -1169,6 +1219,38 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setDifficulty = (level: DifficultyLevel) => {
+      setUser(prev => {
+          if (!prev) return null;
+          const oldDifficulty = prev.currentDifficulty;
+          
+          // Save current wordProgress into the old difficulty slot
+          let newWPByDiff = { ...(prev.wordProgressByDifficulty || { easy: {}, intermediate: {}, hard: {} }) };
+          let newQIByDiff = { ...(prev.currentQuestionIndexByDifficulty || { easy: 0, intermediate: 0, hard: 0 }) };
+          
+          if (oldDifficulty) {
+              newWPByDiff[oldDifficulty] = prev.wordProgress || {};
+              newQIByDiff[oldDifficulty] = prev.currentQuestionIndex || 0;
+          }
+          
+          // Load the new difficulty's wordProgress
+          const newWP = newWPByDiff[level] || {};
+          const newQI = newQIByDiff[level] || 0;
+          
+          const updated = {
+              ...prev,
+              currentDifficulty: level,
+              wordProgress: newWP,
+              wordProgressByDifficulty: newWPByDiff,
+              currentQuestionIndex: newQI,
+              currentQuestionIndexByDifficulty: newQIByDiff,
+              recentWordIds: [], // Reset recent words on switch
+          };
+          syncToSupabase(updated, true);
+          return updated;
+      });
+  };
+
   if (loadingAuth) {
     return <div className="min-h-screen flex items-center justify-center text-white font-black">Đang tải dữ liệu...</div>;
   }
@@ -1178,7 +1260,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user, register, login, logout, addMoney, onAnswer, buyFactory, upgradeFactory, collectIncome,
         buyAction, claimQuest, claimAchievement, factorySeconds, currentWeek, notification,
         leaderboard: displayLeaderboard, myRank, taxSubRate, showLevelUp, setShowLevelUp,
-        leaderboardLastUpdated, totalUsers, fetchLeaderboard
+        leaderboardLastUpdated, totalUsers, fetchLeaderboard, setDifficulty
     }}>
       {children}
     </GameContext.Provider>

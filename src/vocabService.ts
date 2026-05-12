@@ -232,6 +232,17 @@ rawAllWords.forEach(w => {
 
 export const ALL_WORDS = Array.from(uniqueMap.values());
 
+export const EASY_WORDS = ALL_WORDS.slice(0, 400);
+export const INTERMEDIATE_WORDS = ALL_WORDS.slice(400, 2000);
+export const HARD_WORDS = ALL_WORDS.slice(2000);
+
+export const getWordsByDifficulty = (level?: 'easy' | 'intermediate' | 'hard'): Word[] => {
+  if (level === 'easy') return EASY_WORDS;
+  if (level === 'intermediate') return INTERMEDIATE_WORDS;
+  if (level === 'hard') return HARD_WORDS;
+  return ALL_WORDS;
+};
+
 export const getAllWords = () => ALL_WORDS;
 
 export const getUpdatedActivePool = (
@@ -265,15 +276,17 @@ export const getNextWord = (
   _activeWordIds?: string[],
   currentIndex: number = 0,
   _recentWordIds: string[] = [],
-  _currentStreak: number = 0
+  _currentStreak: number = 0,
+  difficulty?: 'easy' | 'intermediate' | 'hard'
 ): Word => {
   const progress = wordProgress || {};
+  const pool = getWordsByDifficulty(difficulty);
 
   type DueEntry = { word: Word; n: number; lastSeen: number };
   const dueWords: DueEntry[] = [];
   let firstNewWord: Word | null = null;
 
-  for (const w of ALL_WORDS) {
+  for (const w of pool) {
     const p = progress[w.id];
 
     // Từ chưa gặp bao giờ → new word
@@ -309,7 +322,7 @@ export const getNextWord = (
 
   // Fallback: tất cả đều đã học, chưa có cái nào đến hạn → trả từ gần đến hạn nhất
   let soonest: { word: Word; remaining: number } | null = null;
-  for (const w of ALL_WORDS) {
+  for (const w of pool) {
     const p = progress[w.id];
     if (!p) continue;
     const n = p.consecutiveCorrect ?? 0;
@@ -319,18 +332,22 @@ export const getNextWord = (
       soonest = { word: w, remaining };
     }
   }
-  return soonest?.word ?? ALL_WORDS[0];
+  return soonest?.word ?? pool[0] ?? ALL_WORDS[0];
 };
 
 
 
-export const generateQuestion = (targetWord?: Word, wordProgress?: Record<string, { consecutiveCorrect: number; seenCount: number; lastSeen: number; cooldown: number; }>): Question => {
-  const pool = [...ALL_WORDS];
-  const word = targetWord || pool[Math.floor(Math.random() * pool.length)];
+export const generateQuestion = (
+  targetWord?: Word, 
+  wordProgress?: Record<string, { consecutiveCorrect: number; seenCount: number; lastSeen: number; cooldown: number; }>,
+  difficulty?: 'easy' | 'intermediate' | 'hard'
+): Question => {
+  const pool = getWordsByDifficulty(difficulty);
+  const word = targetWord || pool[Math.floor(Math.random() * pool.length)] || ALL_WORDS[0];
   
   // Question types: MCQ (60%), Boolean (15%), Matching (10%), Spelling Builder (15%).
   // Pick distractors from seen words if possible
-  const seenWords = ALL_WORDS.filter(w => w.id !== word.id && wordProgress && wordProgress[w.id] && wordProgress[w.id].seenCount > 0);
+  const seenWords = pool.filter(w => w.id !== word.id && wordProgress && wordProgress[w.id] && wordProgress[w.id].seenCount > 0);
   
   const randType = Math.random();
   let type: QuestionType;
@@ -380,7 +397,7 @@ export const generateQuestion = (targetWord?: Word, wordProgress?: Record<string
   }
 
   if (type === 'mcq') {
-    const distractorPool = seenWords.length >= 3 ? seenWords : ALL_WORDS.filter(w => w.id !== word.id);
+    const distractorPool = seenWords.length >= 3 ? seenWords : pool.filter(w => w.id !== word.id);
     
     const distractors = distractorPool
       .sort(() => 0.5 - Math.random())
@@ -426,7 +443,7 @@ export const generateQuestion = (targetWord?: Word, wordProgress?: Record<string
 
   // Boolean type
   const isCorrect = Math.random() > 0.5;
-  const otherWords = seenWords.length > 0 ? seenWords : ALL_WORDS.filter(w => w.id !== word.id);
+  const otherWords = seenWords.length > 0 ? seenWords : pool.filter(w => w.id !== word.id);
   const randomWrongMeaning = otherWords[Math.floor(Math.random() * otherWords.length)]?.meaning || 'khác';
   const meaningToShow = isCorrect ? word.meaning : randomWrongMeaning;
   

@@ -79,11 +79,21 @@ export interface UserStats {
     lastSeen: number; 
     cooldown: number; 
   }>;
+  wordProgressByDifficulty?: Record<DifficultyLevel, Record<string, {
+    consecutiveCorrect: number;
+    seenCount: number;
+    lastSeen: number;
+    cooldown: number;
+  }>>;
   activeWordIds?: string[];
   currentQuestionIndex?: number;
+  currentQuestionIndexByDifficulty?: Record<DifficultyLevel, number>;
   recentWordIds?: string[];
   lastSeasonReset?: string;
+  currentDifficulty?: DifficultyLevel;
 }
+
+export type DifficultyLevel = 'easy' | 'intermediate' | 'hard';
 
 export interface UserFactory {
   id: string;

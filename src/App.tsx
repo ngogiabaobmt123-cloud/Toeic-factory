@@ -39,11 +39,15 @@ import {
   Landmark,
   RefreshCw,
   Volume2,
-  Gem
+  Gem,
+  ArrowLeftRight,
+  Star,
+  Shield,
+  Crown
 } from 'lucide-react';
 
-import { generateQuestion, getAllWords, getNextWord } from './vocabService';
-import { Question, FACTORY_TEMPLATES, DailyQuest, Word } from './types';
+import { generateQuestion, getAllWords, getNextWord, getWordsByDifficulty, EASY_WORDS, INTERMEDIATE_WORDS, HARD_WORDS } from './vocabService';
+import { Question, FACTORY_TEMPLATES, DailyQuest, Word, DifficultyLevel } from './types';
 
 export const playAudio = (text: string) => {
   if (!window.speechSynthesis) return;
@@ -1245,8 +1249,8 @@ const EarnMoney = () => {
     const recentWordIds = currentUser?.recentWordIds || [];
     const currentStreak = currentUser?.currentStreak || 0;
     
-    const word = getNextWord(wordProgress, lastWordId, activeWordIds, currentUser?.currentQuestionIndex || 0, recentWordIds, currentStreak);
-    setCurrentQuestion(generateQuestion(word, currentUser?.wordProgress));
+    const word = getNextWord(wordProgress, lastWordId, activeWordIds, currentUser?.currentQuestionIndex || 0, recentWordIds, currentStreak, currentUser?.currentDifficulty);
+    setCurrentQuestion(generateQuestion(word, currentUser?.wordProgress, currentUser?.currentDifficulty));
     setStatus('answering');
     setSelected(null);
   };
@@ -1603,111 +1607,258 @@ const Quests = () => {
     );
 };
 
-const Library = () => {
-    const { user } = useGame();
-    const [searchTerm, setSearchTerm] = useState('');
-    
-    const wordProgress = user?.wordProgress || {};
-    const activeWordIds = user?.activeWordIds || [];
+const DIFFICULTY_CONFIG: Record<DifficultyLevel, { label: string; desc: string; color: string; gradient: string; border: string; bg: string; icon: React.ReactNode; wordCount: number; badge: string }> = {
+    easy: { label: 'Easy', desc: 'A1–A2 • Từ vựng cơ bản cho người mất gốc', color: 'text-emerald-400', gradient: 'from-emerald-500 to-green-600', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', icon: <Star size={24} className="text-emerald-400" />, wordCount: EASY_WORDS.length, badge: 'bg-emerald-500' },
+    intermediate: { label: 'Intermediate', desc: 'B1–B2 • Từ vựng trung cấp cho kỳ thi TOEIC', color: 'text-blue-400', gradient: 'from-blue-500 to-indigo-600', border: 'border-blue-500/30', bg: 'bg-blue-500/10', icon: <Shield size={24} className="text-blue-400" />, wordCount: INTERMEDIATE_WORDS.length, badge: 'bg-blue-500' },
+    hard: { label: 'Hard', desc: 'C1+ • Từ vựng nâng cao', color: 'text-rose-400', gradient: 'from-rose-500 to-purple-600', border: 'border-rose-500/30', bg: 'bg-rose-500/10', icon: <Crown size={24} className="text-rose-400" />, wordCount: HARD_WORDS.length, badge: 'bg-rose-500' },
+};
 
-    const words = getAllWords()
-        .filter(w => {
+const MasteryCircle = ({ progress, size = 60, color, label }: { progress: number; size?: number; color: string; label?: string }) => {
+    const radius = (size - 8) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress / 100) * circumference;
+    return (
+        <div className="relative flex flex-col items-center gap-1">
+            <svg width={size} height={size} className="-rotate-90">
+                <circle cx={size/2} cy={size/2} r={radius} strokeWidth={4} stroke="rgba(255,255,255,0.1)" fill="none" />
+                <circle cx={size/2} cy={size/2} r={radius} strokeWidth={4} stroke={color} fill="none"
+                    strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+                    className="transition-all duration-700"
+                />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-black text-white">{Math.round(progress)}%</span>
+            </div>
+            {label && <span className="text-[9px] font-black uppercase text-white/40 tracking-wider">{label}</span>}
+        </div>
+    );
+};
+
+const Library = () => {
+    const { user, setDifficulty } = useGame();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [viewLevel, setViewLevel] = useState<DifficultyLevel | null>(null);
+    
+    const wpByDiff = user?.wordProgressByDifficulty || { easy: {}, intermediate: {}, hard: {} };
+
+    // Calculate mastery for each level
+    const getMastery = (level: DifficultyLevel) => {
+        const pool = getWordsByDifficulty(level);
+        const wp = wpByDiff[level] || {};
+        const mastered = pool.filter(w => (wp[w.id]?.consecutiveCorrect || 0) >= 5).length;
+        return { mastered, total: pool.length, percent: pool.length > 0 ? (mastered / pool.length) * 100 : 0 };
+    };
+
+    const getProgressColorForWord = (consecutiveCorrect: number) => {
+        if (consecutiveCorrect >= 5) return 'text-green-500';
+        if (consecutiveCorrect >= 3) return 'text-yellow-400';
+        if (consecutiveCorrect >= 1) return 'text-orange-400';
+        return 'text-white/20';
+    };
+
+    const getProgressPercentForWord = (consecutiveCorrect: number) => {
+        if (consecutiveCorrect >= 5) return 100;
+        if (consecutiveCorrect >= 3) return 60;
+        if (consecutiveCorrect >= 1) return 30;
+        return 0;
+    };
+
+    // If viewing a specific level's word list
+    if (viewLevel) {
+        const config = DIFFICULTY_CONFIG[viewLevel];
+        const wp = wpByDiff[viewLevel] || {};
+        const pool = getWordsByDifficulty(viewLevel);
+        const filteredWords = pool.filter(w => {
             const wordText = w.word || '';
             const meaningText = w.meaning || '';
             return wordText.toLowerCase().includes(searchTerm.toLowerCase()) || 
                    meaningText.toLowerCase().includes(searchTerm.toLowerCase());
-        })
-        .sort((a, b) => {
-            const aActive = activeWordIds.includes(a.id);
-            const bActive = activeWordIds.includes(b.id);
-            if (aActive !== bActive) return aActive ? -1 : 1;
-            return 0;
         });
+        const mastery = getMastery(viewLevel);
 
-    const getProgressColor = (id: string) => {
-        const p = wordProgress[id]?.consecutiveCorrect || 0;
-        if (p >= 5) return 'bg-green-500';
-        if (p >= 3) return 'bg-yellow-400';
-        return 'bg-red-500';
-    };
+        return (
+            <div className="space-y-6">
+                <button 
+                    onClick={() => { setViewLevel(null); setSearchTerm(''); }}
+                    className="flex items-center gap-2 text-white/50 hover:text-white font-black text-sm uppercase transition-colors"
+                >
+                    <ChevronLeft size={16} /> Quay lại kho từ vựng
+                </button>
 
-    const getProgressPercent = (id: string) => {
-        const p = wordProgress[id]?.consecutiveCorrect || 0;
-        if (p >= 5) return '100%';
-        if (p >= 3) return '75%';
-        if (p >= 1) return '20%';
-        return '0%';
-    };
+                <div className={`glass-card p-6 rounded-[32px] border-2 ${config.border} ${config.bg}`}>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-2xl bg-gradient-to-br ${config.gradient} shadow-lg`}>
+                                {config.icon}
+                            </div>
+                            <div>
+                                <h2 className={`text-2xl font-black uppercase italic tracking-tighter ${config.color}`}>{config.label}</h2>
+                                <p className="text-white/40 text-xs font-medium">{config.desc} • {config.wordCount} từ</p>
+                            </div>
+                        </div>
+                        <MasteryCircle 
+                            progress={mastery.percent} 
+                            color={viewLevel === 'easy' ? '#34d399' : viewLevel === 'intermediate' ? '#60a5fa' : '#fb7185'}
+                            label={`${mastery.mastered}/${mastery.total}`}
+                        />
+                    </div>
+                </div>
 
+                <div className="max-w-md mx-auto">
+                    <input 
+                        type="text" 
+                        placeholder="Tìm kiếm từ vựng hoặc nghĩa..." 
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-white/30 font-medium focus:outline-none focus:border-blue-500/50 transition-colors"
+                    />
+                </div>
+
+                <div className="flex flex-col gap-2 max-w-4xl mx-auto">
+                    {filteredWords.map((w, index) => {
+                        const wordProg = wp[w.id];
+                        const cc = wordProg?.consecutiveCorrect || 0;
+                        const pPercent = getProgressPercentForWord(cc);
+                        const pColor = getProgressColorForWord(cc);
+                        const radius = 9;
+                        const circumference = 2 * Math.PI * radius;
+                        const offset = circumference - (pPercent / 100) * circumference;
+
+                        return (
+                            <motion.div 
+                                key={w.id} 
+                                initial={{ opacity: 0, y: 5 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                className={`py-3 px-4 rounded-xl border flex flex-col gap-0.5 hover:bg-white/10 transition-colors bg-white/5 border-white/5`}
+                            >
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <svg width={22} height={22} className="-rotate-90">
+                                        <circle cx={11} cy={11} r={radius} strokeWidth={2.5} stroke="rgba(255,255,255,0.1)" fill="none" />
+                                        <circle cx={11} cy={11} r={radius} strokeWidth={2.5} stroke="currentColor" fill="none"
+                                            strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+                                            className={`${pColor} transition-all duration-500`}
+                                        />
+                                    </svg>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-blue-300 text-base">{index + 1}. {w.word}</span>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); playAudio(w.word); }}
+                                            className="p-1 bg-white/5 hover:bg-white/10 rounded-full text-blue-300/70 hover:text-blue-300 transition-colors"
+                                            title="Nghe phát âm"
+                                        >
+                                            <Volume2 size={14} />
+                                        </button>
+                                    </div>
+                                    {w.pos && <span className="text-white/40 text-xs font-mono">{w.pos}</span>}
+                                    <span className="text-white/80 font-medium text-sm ml-1">{w.meaning}</span>
+                                    {cc >= 5 && <span className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-md border border-green-500/30">MASTER</span>}
+                                </div>
+                                <div className="pl-9 text-white/50 text-xs italic">
+                                    {w.example}
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+                {filteredWords.length === 0 && (
+                    <div className="text-center text-white/30 font-bold uppercase py-10 italic">
+                        Không tìm thấy từ vựng nào.
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Main level selector view
     return (
         <div className="space-y-8">
             <div className="text-center mb-10">
-                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter bg-gradient-to-br from-white to-blue-300 bg-clip-text text-transparent underline decoration-blue-500/30 underline-offset-8 pb-1 leading-tight">KHO TRI THỨC</h2>
-                <p className="text-white/40 text-sm font-medium mt-4">Kho tri thức: {getAllWords().length} từ vựng đã sẵn sàng</p>
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter bg-gradient-to-br from-white to-blue-300 bg-clip-text text-transparent underline decoration-blue-500/30 underline-offset-8 pb-1 leading-tight">KHO TỪ VỰNG</h2>
+                <p className="text-white/40 text-sm font-medium mt-4">Chọn kho từ vựng phù hợp với trình độ của bạn. Tổng cộng {getAllWords().length} từ.</p>
             </div>
 
-            <div className="max-w-md mx-auto mb-10">
-                <input 
-                    type="text" 
-                    placeholder="Tìm kiếm từ vựng hoặc nghĩa..." 
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-white/30 font-medium focus:outline-none focus:border-blue-500/50 transition-colors"
-                />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                {(['easy', 'intermediate', 'hard'] as DifficultyLevel[]).map(level => {
+                    const config = DIFFICULTY_CONFIG[level];
+                    const mastery = getMastery(level);
+                    const isActive = user?.currentDifficulty === level;
 
-            <div className="flex flex-col gap-3 max-w-4xl mx-auto">
-                {words.map((w, index) => {
-                    const isActive = activeWordIds.includes(w.id);
                     return (
-                    <motion.div 
-                        key={w.id} 
-                        initial={{ opacity: 0, y: 5 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className={`py-3 px-4 rounded-xl border flex flex-col gap-0.5 hover:bg-white/10 transition-colors ${isActive ? 'bg-blue-900/20 border-blue-500/30' : 'bg-white/5 border-white/5'}`}
-                    >
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <div className="relative w-6 h-6 flex items-center justify-center">
-                                <div className="absolute w-full h-full rounded-full border-2 border-white/10"></div>
-                                <motion.div 
-                                    className={`absolute w-full h-full rounded-full border-2 ${getProgressColor(w.id)}`}
-                                    style={{ clipPath: `inset(0 0 0 calc(100% - ${getProgressPercent(w.id)}))` }}
-                                />
+                        <motion.div
+                            key={level}
+                            whileHover={{ scale: 1.02 }}
+                            className={`glass-card p-6 rounded-[32px] border-2 flex flex-col justify-between relative overflow-hidden group transition-all ${isActive ? `${config.border} ${config.bg} shadow-lg` : 'border-white/10 hover:border-white/20'}`}
+                        >
+                            {/* Active Indicator */}
+                            {isActive && (
+                                <div className={`absolute top-4 right-4 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-white ${config.badge}`}>
+                                    Đang Triển
+                                </div>
+                            )}
+                            
+                            {/* Decorative glow */}
+                            <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-20 ${config.bg}`}></div>
+
+                            <div className="relative z-10">
+                                {/* Icon & Title */}
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className={`p-3 rounded-2xl bg-gradient-to-br ${config.gradient} shadow-lg`}>
+                                        {config.icon}
+                                    </div>
+                                    <div>
+                                        <h3 className={`text-xl font-black uppercase italic tracking-tight ${config.color}`}>{config.label}</h3>
+                                        <span className="text-white/30 text-[10px] font-black uppercase">{config.wordCount} từ vựng</span>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <p className="text-white/50 text-sm font-medium mb-6 leading-relaxed">{config.desc}</p>
+
+                                {/* Mastery Circle */}
+                                <div className="flex items-center justify-center mb-6">
+                                    <MasteryCircle
+                                        progress={mastery.percent}
+                                        size={80}
+                                        color={level === 'easy' ? '#34d399' : level === 'intermediate' ? '#60a5fa' : '#fb7185'}
+                                        label={`${mastery.mastered}/${mastery.total} thành thạo`}
+                                    />
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-bold text-blue-300 text-base">{index + 1}. {w.word}</span>
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); playAudio(w.word); }}
-                                    className="p-1 bg-white/5 hover:bg-white/10 rounded-full text-blue-300/70 hover:text-blue-300 transition-colors"
-                                    title="Nghe phát âm"
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-2 relative z-10">
+                                <button
+                                    onClick={() => { setDifficulty(level); }}
+                                    className={`w-full py-3 rounded-2xl font-black uppercase text-xs transition-all shadow-lg active:scale-95 ${
+                                        isActive 
+                                            ? `bg-gradient-to-r ${config.gradient} text-white shadow-lg` 
+                                            : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/10'
+                                    }`}
                                 >
-                                    <Volume2 size={14} />
+                                    {isActive ? '✓ Đang Triển Kho Này' : 'Triển'}
+                                </button>
+                                <button
+                                    onClick={() => setViewLevel(level)}
+                                    className="w-full py-2.5 rounded-2xl font-black uppercase text-[10px] bg-white/5 text-white/50 hover:text-white hover:bg-white/10 transition-all border border-white/5"
+                                >
+                                    Xem danh sách từ →
                                 </button>
                             </div>
-                            {w.pos && <span className="text-white/40 text-xs font-mono">{w.pos}</span>}
-                            <span className="text-white/80 font-medium text-sm ml-1">{w.meaning}</span>
-                        </div>
-                        <div className="pl-9 text-white/50 text-xs italic">
-                            {w.example}
-                        </div>
-                    </motion.div>
-                )})}
+                        </motion.div>
+                    );
+                })}
             </div>
-            {words.length === 0 && (
-                <div className="text-center text-white/30 font-bold uppercase py-10 italic">
-                    Không tìm thấy từ vựng nào.
-                </div>
-            )}
         </div>
-    )
-}
+    );
+};
 
 // --- MAIN APP ---
 
 const GameApp = () => {
-  const { user, logout, notification, showLevelUp, setShowLevelUp } = useGame();
+  const { user, logout, notification, showLevelUp, setShowLevelUp, setDifficulty } = useGame();
   const [activeTab, setActiveTab] = useState<'dash' | 'shop' | 'earn' | 'quest' | 'lib' | 'rank'>('dash');
+  const [showDifficultySwitch, setShowDifficultySwitch] = useState(false);
 
   if (!user) return <Auth />;
 
@@ -1763,10 +1914,80 @@ const GameApp = () => {
         )}
       </AnimatePresence>
 
+      {/* Difficulty Switch Modal */}
+      <AnimatePresence>
+        {showDifficultySwitch && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-black/70 flex items-center justify-center p-6"
+            onClick={() => setShowDifficultySwitch(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="glass-card p-8 rounded-[32px] max-w-md w-full border border-white/10"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-black uppercase italic tracking-tighter text-center mb-6">Đổi Kho Từ Vựng</h3>
+              <div className="space-y-3">
+                {(['easy', 'intermediate', 'hard'] as DifficultyLevel[]).map(level => {
+                  const config = DIFFICULTY_CONFIG[level];
+                  const isActive = user.currentDifficulty === level;
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => { setDifficulty(level); setShowDifficultySwitch(false); }}
+                      className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all border-2 active:scale-95 ${
+                        isActive
+                          ? `${config.border} ${config.bg} shadow-lg`
+                          : 'border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-xl bg-gradient-to-br ${config.gradient}`}>
+                        {config.icon}
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className={`font-black uppercase italic text-sm ${config.color}`}>{config.label}</div>
+                        <div className="text-white/30 text-[10px] font-bold">{config.wordCount} từ</div>
+                      </div>
+                      {isActive && <span className="text-[9px] font-black uppercase text-white/40">Đang triển</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => setShowDifficultySwitch(false)}
+                className="w-full mt-4 py-3 bg-white/5 text-white/50 rounded-2xl font-black uppercase text-xs hover:bg-white/10 transition-all"
+              >
+                Đóng
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Header */}
       <header className="max-w-6xl mx-auto mb-12">
         <div className="flex justify-between items-center glass p-6 rounded-[32px] px-8">
             <div className="flex items-center gap-3">
+                {/* Đổi kho button */}
+                {user.currentDifficulty && (
+                    <button
+                        onClick={() => setShowDifficultySwitch(true)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all active:scale-95 hover:bg-white/10 ${
+                            user.currentDifficulty === 'easy' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+                            user.currentDifficulty === 'intermediate' ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' :
+                            'border-rose-500/30 bg-rose-500/10 text-rose-400'
+                        }`}
+                        title="Đổi kho từ vựng"
+                    >
+                        <ArrowLeftRight size={16} />
+                        <span className="text-[10px] font-black uppercase hidden sm:inline">{DIFFICULTY_CONFIG[user.currentDifficulty].label}</span>
+                    </button>
+                )}
                 <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/30">
                     <Factory size={24} className="text-white" />
                 </div>
@@ -1797,7 +2018,29 @@ const GameApp = () => {
       <main className="max-w-6xl mx-auto">
         {/* Keep EarnMoney mounted so its internal states do not reset when switching tabs */}
         <div className={activeTab === 'earn' ? 'block animate-in fade-in slide-in-from-bottom-4 duration-500' : 'hidden'}>
-            <EarnMoney />
+            {!user.currentDifficulty ? (
+                <div className="max-w-lg mx-auto mt-20 text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-card p-10 rounded-[40px] border border-white/10"
+                    >
+                        <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/30">
+                            <BookOpen size={40} className="text-blue-400" />
+                        </div>
+                        <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-3">Chọn level mà bạn muốn</h2>
+                        <p className="text-white/40 text-sm font-medium mb-8">Hãy vào <strong className="text-blue-400">Kho từ vựng</strong> để chọn trình độ trước khi bắt đầu cày cuốc.</p>
+                        <button
+                            onClick={() => setActiveTab('lib')}
+                            className="bg-blue-600 hover:bg-blue-500 text-white font-black uppercase px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                        >
+                            Đến Kho Từ Vựng →
+                        </button>
+                    </motion.div>
+                </div>
+            ) : (
+                <EarnMoney />
+            )}
         </div>
 
         {activeTab !== 'earn' && (
