@@ -59,18 +59,18 @@ export const playAudio = (text: string) => {
   window.speechSynthesis.speak(utterance);
 };
 
-// Emoji helper for factories - much more visual!
+// Emoji helper for factories - using widely-supported emojis
 const FACTORY_EMOJI: Record<string, string> = {
-    'Soup': '🍜',
-    'Footprints': '🩴',
-    'Coffee': '☕',
-    'Croissant': '🧋',
-    'Landmark': '🏛️',
-    'Utensils': '🍳',
-    'Languages': '📚',
-    'Sparkles': '✨',
-    'HardHat': '🏗️',
-    'Cpu': '💻',
+    'Soup': '🍜',           // Mì Tôm
+    'Footprints': '👟',     // Dép tổ ong → giày
+    'Coffee': '🧋',         // Trà sữa
+    'Croissant': '🥖',      // Bánh mì Sài Gòn
+    'Landmark': '🏦',       // Ngân hàng
+    'Utensils': '🍽️',      // Nhà hàng Omakase
+    'Languages': '🎓',      // Trung tâm Tiếng Anh
+    'Sparkles': '💅',       // Viện thẩm mỹ
+    'HardHat': '🔩',       // Nhà máy thép
+    'Cpu': '🔬',            // Nhà máy chip
     'Bike': '🚲',
     'Smartphone': '📱',
     'CarFront': '🚗',
