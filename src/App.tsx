@@ -68,7 +68,7 @@ const FACTORY_EMOJI: Record<string, string> = {
     'Landmark': '🏦',       // Ngân hàng
     'Utensils': '🍽️',      // Nhà hàng Omakase
     'Languages': '🎓',      // Trung tâm Tiếng Anh
-    'Sparkles': '💅',       // Viện thẩm mỹ
+    'Sparkles': '💄',       // Viện thẩm mỹ
     'HardHat': '🔩',       // Nhà máy thép
     'Cpu': '🔬',            // Nhà máy chip
     'Bike': '🚲',
