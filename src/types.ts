@@ -32,22 +32,35 @@ export interface DailyQuest {
   id: string;
   title: string;
   reward: number;
+  rewardDiamonds?: number;
   completed: boolean;
   claimed: boolean;
   type: 'login' | 'answer' | 'streak_3' | 'streak_5' | 'streak_10' | 'top_1' | 'top_2' | 'top_3' | 'fix_error' | 'climb_1' | 'climb_10';
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  rewardDiamonds: number;
+  completed: boolean;
+  claimed: boolean;
+  type: 'top_1' | 'top_2' | 'top_3' | 'correct_100' | 'correct_500' | 'correct_1000' | 'wrong_50' | 'wrong_100' | 'factory_1' | 'factory_2' | 'factory_3' | 'factory_4' | 'factory_5' | 'factory_6' | 'factory_7' | 'factory_8' | 'factory_9' | 'factory_10' | 'level_1' | 'level_10' | 'level_20' | 'level_50';
 }
 
 export interface UserStats {
   uid: string;
   displayName: string;
   balance: number;
+  diamonds: number;
   xp: number;
   level: number;
   incomePerMinute: number;
   factories: UserFactory[];
   completedQuestions: number;
+  totalWrongCount: number;
   lastLogin: Date;
   dailyQuests: DailyQuest[];
+  achievements: Achievement[];
   currentStreak: number;
   dailyCorrectCount: number;
   lastQuestReset: string;

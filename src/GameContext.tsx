@@ -1,20 +1,38 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { UserStats, UserFactory, FACTORY_TEMPLATES, DailyQuest } from './types';
+import { UserStats, UserFactory, FACTORY_TEMPLATES, DailyQuest, Achievement } from './types';
 import { getUpdatedActivePool } from './vocabService';
 import { supabase } from './lib/supabase';
 
 const INITIAL_QUESTS: DailyQuest[] = [
-  { id: 'q1', title: 'Điểm danh hằng ngày', reward: 10, completed: false, claimed: false, type: 'login' },
-  { id: 'q2', title: 'Đạt tổng 10 câu đúng', reward: 10, completed: false, claimed: false, type: 'answer' },
-  { id: 'q3', title: 'Đúng 3 câu liên tiếp', reward: 10, completed: false, claimed: false, type: 'streak_3' },
-  { id: 'q4', title: 'Đúng 5 câu liên tiếp', reward: 20, completed: false, claimed: false, type: 'streak_5' },
-  { id: 'q5', title: 'Đúng 10 câu liên tiếp', reward: 30, completed: false, claimed: false, type: 'streak_10' },
-  { id: 'q6', title: 'Sửa lỗi sai (Đúng câu đã từng sai)', reward: 5, completed: false, claimed: false, type: 'fix_error' },
-  { id: 'q7', title: 'Leo 1 hạng', reward: 5, completed: false, claimed: false, type: 'climb_1' },
-  { id: 'q8', title: 'Leo 10 hạng', reward: 50, completed: false, claimed: false, type: 'climb_10' },
-  { id: 'q9', title: 'Tranh được Top 1', reward: 50, completed: false, claimed: false, type: 'top_1' },
-  { id: 'q10', title: 'Tranh được Top 2', reward: 20, completed: false, claimed: false, type: 'top_2' },
-  { id: 'q11', title: 'Đánh bại Top 3', reward: 5, completed: false, claimed: false, type: 'top_3' },
+  { id: 'q1', title: 'Điểm danh hằng ngày', reward: 10, rewardDiamonds: 1, completed: false, claimed: false, type: 'login' },
+  { id: 'q3', title: 'Đúng 3 câu liên tiếp', reward: 10, rewardDiamonds: 1, completed: false, claimed: false, type: 'streak_3' },
+  { id: 'q4', title: 'Đúng 5 câu liên tiếp', reward: 20, rewardDiamonds: 2, completed: false, claimed: false, type: 'streak_5' },
+  { id: 'q5', title: 'Đúng 10 câu liên tiếp', reward: 30, rewardDiamonds: 3, completed: false, claimed: false, type: 'streak_10' },
+];
+
+export const INITIAL_ACHIEVEMENTS: Achievement[] = [
+  { id: 'a_top3', title: 'Đạt Top 3 Bảng xếp hạng', rewardDiamonds: 5, completed: false, claimed: false, type: 'top_3' },
+  { id: 'a_top2', title: 'Đạt Top 2 Bảng xếp hạng', rewardDiamonds: 10, completed: false, claimed: false, type: 'top_2' },
+  { id: 'a_top1', title: 'Đạt Top 1 Bảng xếp hạng', rewardDiamonds: 15, completed: false, claimed: false, type: 'top_1' },
+  { id: 'a_c100', title: 'Đúng tổng cộng 100 câu', rewardDiamonds: 5, completed: false, claimed: false, type: 'correct_100' },
+  { id: 'a_c500', title: 'Đúng tổng cộng 500 câu', rewardDiamonds: 10, completed: false, claimed: false, type: 'correct_500' },
+  { id: 'a_c1000', title: 'Đúng tổng cộng 1000 câu', rewardDiamonds: 20, completed: false, claimed: false, type: 'correct_1000' },
+  { id: 'a_w50', title: 'Sai tổng cộng 50 câu', rewardDiamonds: 5, completed: false, claimed: false, type: 'wrong_50' },
+  { id: 'a_w100', title: 'Sai tổng cộng 100 câu', rewardDiamonds: 10, completed: false, claimed: false, type: 'wrong_100' },
+  { id: 'a_f1', title: 'Sở hữu 1 nhà máy', rewardDiamonds: 1, completed: false, claimed: false, type: 'factory_1' },
+  { id: 'a_f2', title: 'Sở hữu 2 nhà máy', rewardDiamonds: 2, completed: false, claimed: false, type: 'factory_2' },
+  { id: 'a_f3', title: 'Sở hữu 3 nhà máy', rewardDiamonds: 3, completed: false, claimed: false, type: 'factory_3' },
+  { id: 'a_f4', title: 'Sở hữu 4 nhà máy', rewardDiamonds: 4, completed: false, claimed: false, type: 'factory_4' },
+  { id: 'a_f5', title: 'Sở hữu 5 nhà máy', rewardDiamonds: 5, completed: false, claimed: false, type: 'factory_5' },
+  { id: 'a_f6', title: 'Sở hữu 6 nhà máy', rewardDiamonds: 6, completed: false, claimed: false, type: 'factory_6' },
+  { id: 'a_f7', title: 'Sở hữu 7 nhà máy', rewardDiamonds: 7, completed: false, claimed: false, type: 'factory_7' },
+  { id: 'a_f8', title: 'Sở hữu 8 nhà máy', rewardDiamonds: 8, completed: false, claimed: false, type: 'factory_8' },
+  { id: 'a_f9', title: 'Sở hữu 9 nhà máy', rewardDiamonds: 9, completed: false, claimed: false, type: 'factory_9' },
+  { id: 'a_f10', title: 'Sở hữu 10 nhà máy', rewardDiamonds: 10, completed: false, claimed: false, type: 'factory_10' },
+  { id: 'a_l1', title: 'Đạt Cấp độ 1', rewardDiamonds: 1, completed: false, claimed: false, type: 'level_1' },
+  { id: 'a_l10', title: 'Đạt Cấp độ 10', rewardDiamonds: 5, completed: false, claimed: false, type: 'level_10' },
+  { id: 'a_l20', title: 'Đạt Cấp độ 20', rewardDiamonds: 10, completed: false, claimed: false, type: 'level_20' },
+  { id: 'a_l50', title: 'Đạt Cấp độ 50', rewardDiamonds: 20, completed: false, claimed: false, type: 'level_50' },
 ];
 
 interface GameContextType {
@@ -29,6 +47,7 @@ interface GameContextType {
   collectIncome: (factoryId?: string) => void;
   buyAction: (actionId: 'charity' | 'crisis' | 'capitalist' | 'lucky' | 'intern') => void;
   claimQuest: (questId: string) => void;
+  claimAchievement: (achievementId: string) => void;
   factorySeconds: number; // Global time 0-59 for all factories
   currentWeek: number;
   notification: string | null;
@@ -127,16 +146,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (err: any) {
         console.error(`[Supabase Sync] Failed for ${docId}:`, err);
         if (err?.code === 'PGRST205' || err?.code === 'PGRST204') {
-            console.error('Missing DB columns. You need to run ALTER TABLE users ADD COLUMN "internCost" numeric, ADD COLUMN "internBuffExpiresAt" numeric;');
+            console.error('Missing DB columns. You need to run ALTER TABLE users ADD COLUMN "diamonds" numeric DEFAULT 0...');
             // Prevent spamming the alert
             if (!window.sessionStorage.getItem('db_column_error_shown')) {
-                window.alert('⚠️ CƠ SỞ DỮ LIỆU CHƯA ĐƯỢC CẬP NHẬT!\n\nBạn chưa thêm cột cho tính năng Thực Tập Sinh. Vui lòng vào SQL Editor của Supabase để chạy lệnh:\n\nALTER TABLE users ADD COLUMN "internCost" numeric, ADD COLUMN "internBuffExpiresAt" numeric;\n\nHệ thống sẽ tạm thời không lưu dữ liệu Thực Tập Sinh để bảo toàn số dư tiền và kinh nghiệm của bạn.');
+                window.alert('⚠️ CƠ SỞ DỮ LIỆU CHƯA ĐƯỢC CẬP NHẬT!\n\nBạn chưa thêm cột cho tính năng Kim Cương và Thực Tập Sinh. Vui lòng vào SQL Editor của Supabase để chạy lệnh:\n\nALTER TABLE users ADD COLUMN "internCost" numeric, ADD COLUMN "internBuffExpiresAt" numeric, ADD COLUMN "diamonds" numeric DEFAULT 0, ADD COLUMN "totalWrongCount" numeric DEFAULT 0, ADD COLUMN "achievements" jsonb;\n\nHệ thống sẽ tạm thời lưu ở bộ nhớ trình duyệt để bảo toàn tiến trình của bạn.');
                 window.sessionStorage.setItem('db_column_error_shown', 'true');
             }
             // Retry without the problematic columns
             const fallbackPayload = { ...currentPayload };
             delete fallbackPayload.internCost;
             delete fallbackPayload.internBuffExpiresAt;
+            delete fallbackPayload.diamonds;
+            delete fallbackPayload.totalWrongCount;
+            delete fallbackPayload.achievements;
             if (retryCount < 2) {
                 setTimeout(() => performUpsert(retryCount + 1, fallbackPayload), 1000);
             }
@@ -188,18 +210,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (userData) {
             console.log(`[Supabase] Data loaded from server (${docId})`);
-            // Merge with defaults to ensure all fields (like factories) exist even if DB columns are missing
+            // Merge with defaults to ensure all fields exist even if DB columns are missing
             const mergedUser: UserStats = {
                 uid: docId,
                 displayName: userData.displayName || (session?.user.email?.split('@')[0] || "Người chơi mới"),
                 balance: userData.balance || 0,
+                diamonds: userData.diamonds !== undefined ? Number(userData.diamonds) : 0,
                 xp: userData.xp || 0,
                 level: userData.level || 0,
                 incomePerMinute: userData.incomePerMinute || 0,
                 factories: userData.factories || [],
                 completedQuestions: userData.completedQuestions || 0,
+                totalWrongCount: userData.totalWrongCount || 0,
                 lastLogin: userData.lastLogin ? new Date(userData.lastLogin) : new Date(),
-                dailyQuests: userData.dailyQuests || INITIAL_QUESTS,
+                dailyQuests: INITIAL_QUESTS.map(baseQ => {
+                    const existingQ = (userData.dailyQuests || []).find((q: any) => q.id === baseQ.id);
+                    return existingQ ? { ...baseQ, completed: existingQ.completed, claimed: existingQ.claimed } : baseQ;
+                }),
+                achievements: INITIAL_ACHIEVEMENTS.map(baseAch => {
+                    const existingAch = (userData.achievements || []).find((a: any) => a.id === baseAch.id);
+                    return existingAch ? { ...baseAch, completed: existingAch.completed, claimed: existingAch.claimed } : baseAch;
+                }),
                 currentStreak: userData.currentStreak || 0,
                 dailyCorrectCount: userData.dailyCorrectCount || 0,
                 lastQuestReset: userData.lastQuestReset || new Date().toDateString(),
@@ -225,13 +256,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 uid: docId,
                 displayName: session?.user.user_metadata?.displayName || fallbackName,
                 balance: 0,
+                diamonds: 0,
                 xp: 0,
                 level: 0,
                 incomePerMinute: 0,
                 factories: [],
                 completedQuestions: 0,
+                totalWrongCount: 0,
                 lastLogin: new Date(),
                 dailyQuests: INITIAL_QUESTS,
+                achievements: INITIAL_ACHIEVEMENTS,
                 currentStreak: 0,
                 dailyCorrectCount: 0,
                 lastQuestReset: new Date().toDateString(),
@@ -612,12 +646,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const updated = {
             ...prev,
             balance: prev.balance + quest.reward,
+            diamonds: prev.diamonds + (quest.rewardDiamonds || 0),
             dailyQuests: updatedQuests
         };
         syncToSupabase(updated, true); // Force sync on claim
         return updated;
     });
-  }
+  };
+
+  const claimAchievement = (achievementId: string) => {
+    setUser(prev => {
+        if (!prev) return null;
+        const ach = prev.achievements.find(a => a.id === achievementId);
+        if (!ach || !ach.completed || ach.claimed) return prev;
+
+        const updatedAchs = prev.achievements.map(a => 
+            a.id === achievementId ? { ...a, claimed: true } : a
+        );
+        const updated = {
+            ...prev,
+            diamonds: prev.diamonds + ach.rewardDiamonds,
+            achievements: updatedAchs
+        };
+        syncToSupabase(updated, true); // Force sync on claim
+        return updated;
+    });
+  };
 
   // Rank check logic
   useEffect(() => {
@@ -700,6 +754,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 missedWordIds: newMissedIds,
                 xp: newXP,
                 level: newLevel,
+                totalWrongCount: prev.totalWrongCount + 1,
                 wordProgress: newWordProgress,
                 activeWordIds: updatedPool,
                 currentQuestionIndex: nextIdx,
@@ -951,6 +1006,48 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  // Auto-complete Achievements when metrics change
+  useEffect(() => {
+    if (!user) return;
+    let changed = false;
+    const updatedAchievements = user.achievements.map(a => {
+      if (a.completed) return a;
+      let shouldComplete = false;
+      if (a.type === 'top_1' && myRank === 1) shouldComplete = true;
+      if (a.type === 'top_2' && myRank > 0 && myRank <= 2) shouldComplete = true;
+      if (a.type === 'top_3' && myRank > 0 && myRank <= 3) shouldComplete = true;
+      if (a.type === 'correct_100' && user.completedQuestions >= 100) shouldComplete = true;
+      if (a.type === 'correct_500' && user.completedQuestions >= 500) shouldComplete = true;
+      if (a.type === 'correct_1000' && user.completedQuestions >= 1000) shouldComplete = true;
+      if (a.type === 'wrong_50' && user.totalWrongCount >= 50) shouldComplete = true;
+      if (a.type === 'wrong_100' && user.totalWrongCount >= 100) shouldComplete = true;
+      if (a.type === 'factory_1' && user.factories.length >= 1) shouldComplete = true;
+      if (a.type === 'factory_2' && user.factories.length >= 2) shouldComplete = true;
+      if (a.type === 'factory_3' && user.factories.length >= 3) shouldComplete = true;
+      if (a.type === 'factory_4' && user.factories.length >= 4) shouldComplete = true;
+      if (a.type === 'factory_5' && user.factories.length >= 5) shouldComplete = true;
+      if (a.type === 'factory_6' && user.factories.length >= 6) shouldComplete = true;
+      if (a.type === 'factory_7' && user.factories.length >= 7) shouldComplete = true;
+      if (a.type === 'factory_8' && user.factories.length >= 8) shouldComplete = true;
+      if (a.type === 'factory_9' && user.factories.length >= 9) shouldComplete = true;
+      if (a.type === 'factory_10' && user.factories.length >= 10) shouldComplete = true;
+      if (a.type === 'level_1' && user.level >= 1) shouldComplete = true;
+      if (a.type === 'level_10' && user.level >= 10) shouldComplete = true;
+      if (a.type === 'level_20' && user.level >= 20) shouldComplete = true;
+      if (a.type === 'level_50' && user.level >= 50) shouldComplete = true;
+      
+      if (shouldComplete) {
+        changed = true;
+        return { ...a, completed: true };
+      }
+      return a;
+    });
+
+    if (changed) {
+      setUser(prev => prev ? { ...prev, achievements: updatedAchievements } : null);
+    }
+  }, [user?.completedQuestions, user?.totalWrongCount, user?.level, user?.factories?.length, myRank]);
+
   const buyAction = (actionId: 'charity' | 'crisis' | 'capitalist' | 'lucky' | 'intern') => {
     if (!user) return;
     
@@ -981,63 +1078,57 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return updated;
         });
     } else if (actionId === 'capitalist') {
-        const cost = user.capitalistCost || 500;
-        if (user.balance < cost) {
-            notify(`Cần $${cost} để kích hoạt Tư bản bốc lột!`);
+        const costDiamonds = 10;
+        if (user.diamonds < costDiamonds) {
+            notify(`Cần 10 Kim Cương để kích hoạt Tư bản bốc lột!`);
             return;
         }
 
         setUser(prev => {
             if (!prev) return null;
-            const nextCost = Math.min(cost + 500, 5000);
             const updated = {
                 ...prev,
-                balance: prev.balance - cost,
-                capitalistCost: nextCost,
+                diamonds: prev.diamonds - costDiamonds,
                 capitalistBuffExpiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours from now
             };
             syncToSupabase(updated, true); // Force sync on purchase
-            notify(`Đã kích hoạt Tư bản bốc lột! Công suất tăng 50% trong 24 giờ. Lần sau giá $${nextCost}.`);
+            notify(`Đã kích hoạt Tư bản bốc lột! Công suất tăng 50% trong 24 giờ.`);
             return updated;
         });
     } else if (actionId === 'lucky') {
-        const cost = user.luckyCost || 100;
-        if (user.balance < cost) {
-            notify(`Cần $${cost} để kích hoạt Khung giờ vàng!`);
+        const costDiamonds = 10;
+        if (user.diamonds < costDiamonds) {
+            notify(`Cần 10 Kim Cương để kích hoạt Khung giờ vàng!`);
             return;
         }
 
         setUser(prev => {
             if (!prev) return null;
-            const nextCost = Math.min(cost + 100, 1000);
             const updated = {
                 ...prev,
-                balance: prev.balance - cost,
-                luckyCost: nextCost,
+                diamonds: prev.diamonds - costDiamonds,
                 luckyBuffExpiresAt: Date.now() + 1 * 60 * 60 * 1000 // 1 hour from now
             };
             syncToSupabase(updated, true); // Force sync on purchase
-            notify(`Đã kích hoạt Khung giờ vàng! Nhân đôi tiền thưởng cày cuốc trong 1 giờ. Lần sau giá $${nextCost}.`);
+            notify(`Đã kích hoạt Khung giờ vàng! Nhân đôi tiền thưởng cày cuốc trong 1 giờ.`);
             return updated;
         });
     } else if (actionId as string === 'intern') {
-        const cost = user.internCost || 100;
-        if (user.balance < cost) {
-            notify(`Cần $${cost} để kích hoạt Sức mạnh thực tập sinh!`);
+        const costDiamonds = 10;
+        if (user.diamonds < costDiamonds) {
+            notify(`Cần 10 Kim Cương để kích hoạt Sức mạnh thực tập sinh!`);
             return;
         }
 
         setUser(prev => {
             if (!prev) return null;
-            const nextCost = Math.min(cost + 50, 500);
             const updated = {
                 ...prev,
-                balance: prev.balance - cost,
-                internCost: nextCost,
+                diamonds: prev.diamonds - costDiamonds,
                 internBuffExpiresAt: Date.now() + 1 * 60 * 60 * 1000 // 1 hour from now
             };
             syncToSupabase(updated, true); // Force sync on purchase
-            notify(`Đã kích hoạt Sức mạnh thực tập sinh! Nhân đôi XP nhận được trong 1 giờ. Lần sau giá $${nextCost}.`);
+            notify(`Đã kích hoạt Sức mạnh thực tập sinh! Nhân đôi XP nhận được trong 1 giờ.`);
             return updated;
         });
     } else if (actionId === 'crisis') {
@@ -1052,7 +1143,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <GameContext.Provider value={{ 
         user, register, login, logout, addMoney, onAnswer, buyFactory, upgradeFactory, collectIncome,
-        buyAction, claimQuest, factorySeconds, currentWeek, notification,
+        buyAction, claimQuest, claimAchievement, factorySeconds, currentWeek, notification,
         leaderboard: displayLeaderboard, myRank, taxSubRate, showLevelUp, setShowLevelUp,
         leaderboardLastUpdated, totalUsers, fetchLeaderboard
     }}>

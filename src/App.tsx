@@ -38,7 +38,8 @@ import {
   Briefcase,
   Landmark,
   RefreshCw,
-  Volume2
+  Volume2,
+  Gem
 } from 'lucide-react';
 
 import { generateQuestion, getAllWords, getNextWord } from './vocabService';
@@ -250,11 +251,20 @@ const Dashboard = () => {
                 </div>
             </div>
         </div>
-        <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
-            <Coins className="text-yellow-400" size={20} />
-            <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase text-white/30 leading-none mb-1">Số dư hiện tại</span>
-                <span className="text-xl font-black font-mono text-white">${user.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
+                <Coins className="text-yellow-400" size={20} />
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase text-white/30 leading-none mb-1">Số dư hiện tại</span>
+                    <span className="text-xl font-black font-mono text-white">${user.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+            <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
+                <Gem className="text-cyan-400 animate-pulse" size={20} />
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase text-white/30 leading-none mb-1">Kim Cương</span>
+                    <span className="text-xl font-black font-mono text-cyan-300">{user.diamonds.toLocaleString()}</span>
+                </div>
             </div>
         </div>
       </div>
@@ -868,7 +878,7 @@ const Shop = () => {
                             <Briefcase size={24} className="text-white" />
                         </div>
                     </div>
-                    <p className="text-white/50 text-sm font-medium mb-2 leading-relaxed">Ép nhân viên làm thêm giờ phi mã. Tăng 50% thu nhập thụ động mảng nhà máy kinh doanh trong 24 giờ.</p>
+                    <p className="text-white/50 text-sm font-medium mb-2 leading-relaxed">Ép nhân viên làm thêm giờ phi mã. Tăng 50% thu nhập thụ động mảng nhà máy kinh doanh trong 24 giờ. (Giá cố định: 10 Kim Cương).</p>
                     {capitalistTimeLeft && (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-xl mt-2 mb-4">
                             <Clock size={12} className="text-purple-400 animate-pulse" />
@@ -878,15 +888,17 @@ const Shop = () => {
                   </div>
                   <button 
                     onClick={() => buyAction('capitalist')}
-                    disabled={(user?.balance || 0) < (user?.capitalistCost || 50)}
+                    disabled={(user?.diamonds || 0) < 10}
                     className={`w-full flex flex-col items-center justify-center py-4 rounded-2xl font-black uppercase transition-all shadow-lg ${
-                        (user?.balance || 0) < (user?.capitalistCost || 50)
+                        (user?.diamonds || 0) < 10
                         ? 'bg-white/5 text-white/20 cursor-not-allowed'
                         : 'bg-purple-600 text-white hover:bg-purple-500 shadow-purple-500/20 active:scale-95'
                     }`}
                   >
                         <span className="text-[10px] opacity-60">Kích hoạt</span>
-                        <span className="text-sm">${(user?.capitalistCost || 50).toLocaleString()}</span>
+                        <span className="text-sm flex items-center gap-1.5 text-cyan-300">
+                            <Gem size={14} className="animate-pulse" /> 10
+                        </span>
                   </button>
               </motion.div>
 
@@ -907,7 +919,7 @@ const Shop = () => {
                             <Flame size={24} className="text-white" />
                         </div>
                     </div>
-                    <p className="text-white/50 text-sm font-medium mb-2 leading-relaxed">May mắn tới liên tục. Gấp đôi số tiền thưởng sau mỗi câu trả lời đúng trong 1 giờ (Giá tăng $100 mỗi lần dùng, tối đa $1000).</p>
+                    <p className="text-white/50 text-sm font-medium mb-2 leading-relaxed">May mắn tới liên tục. Gấp đôi số tiền thưởng sau mỗi câu trả lời đúng trong 1 giờ. (Giá cố định: 10 Kim Cương).</p>
                     {luckyTimeLeft && (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-xl mt-2 mb-4">
                             <Clock size={12} className="text-yellow-400 animate-pulse" />
@@ -917,15 +929,17 @@ const Shop = () => {
                   </div>
                   <button 
                     onClick={() => buyAction('lucky')}
-                    disabled={(user?.balance || 0) < (user?.luckyCost || 100)}
+                    disabled={(user?.diamonds || 0) < 10}
                     className={`w-full flex flex-col items-center justify-center py-4 rounded-2xl font-black uppercase transition-all shadow-lg ${
-                        (user?.balance || 0) < (user?.luckyCost || 100)
+                        (user?.diamonds || 0) < 10
                         ? 'bg-white/5 text-white/20 cursor-not-allowed'
                         : 'bg-yellow-600 text-white hover:bg-yellow-500 shadow-yellow-500/20 active:scale-95'
                     }`}
                   >
                         <span className="text-[10px] opacity-60">Kích hoạt</span>
-                        <span className="text-sm">${(user?.luckyCost || 100).toLocaleString()}</span>
+                        <span className="text-sm flex items-center gap-1.5 text-cyan-300">
+                            <Gem size={14} className="animate-pulse" /> 10
+                        </span>
                   </button>
               </motion.div>
 
@@ -946,7 +960,7 @@ const Shop = () => {
                             <Briefcase size={24} className="text-white" />
                         </div>
                     </div>
-                    <p className="text-white/50 text-sm font-medium mb-2 leading-relaxed">Bị bóc lột nhưng bù lại học được nhiều. Gấp đôi XP nhận được mỗi câu đúng trong 1 giờ (Giá tăng $50 mỗi lần dùng, tối đa $500).</p>
+                    <p className="text-white/50 text-sm font-medium mb-2 leading-relaxed">Bị bóc lột nhưng bù lại học được nhiều. Gấp đôi XP nhận được mỗi câu đúng trong 1 giờ. (Giá cố định: 10 Kim Cương).</p>
                     {internTimeLeft && (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-xl mt-2 mb-4">
                             <Clock size={12} className="text-blue-400 animate-pulse" />
@@ -956,15 +970,17 @@ const Shop = () => {
                   </div>
                   <button 
                     onClick={() => buyAction('intern')}
-                    disabled={(user?.balance || 0) < (user?.internCost || 100)}
+                    disabled={(user?.diamonds || 0) < 10}
                     className={`w-full flex flex-col items-center justify-center py-4 rounded-2xl font-black uppercase transition-all shadow-lg ${
-                        (user?.balance || 0) < (user?.internCost || 100)
+                        (user?.diamonds || 0) < 10
                         ? 'bg-white/5 text-white/20 cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-500/20 active:scale-95'
                     }`}
                   >
                         <span className="text-[10px] opacity-60">Kích hoạt</span>
-                        <span className="text-sm">${(user?.internCost || 100).toLocaleString()}</span>
+                        <span className="text-sm flex items-center gap-1.5 text-cyan-300">
+                            <Gem size={14} className="animate-pulse" /> 10
+                        </span>
                   </button>
               </motion.div>
           </div>
@@ -1478,52 +1494,114 @@ const EarnMoney = () => {
 };
 
 const Quests = () => {
-    const { user, claimQuest } = useGame();
+    const { user, claimQuest, claimAchievement } = useGame();
     if (!user) return null;
 
     return (
-        <div className="space-y-6">
-            <div className="text-center mb-8">
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter bg-gradient-to-br from-white to-blue-300 bg-clip-text text-transparent pb-1 leading-tight">Nhiệm vụ Ngày</h2>
-                <p className="text-white/40 text-sm font-medium">Hoàn thành để nhận thêm những phần thưởng giá trị.</p>
-            </div>
+        <div className="space-y-12">
+            {/* Daily Quests Section */}
+            <div className="space-y-6">
+                <div className="text-center mb-8">
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter bg-gradient-to-br from-white to-blue-300 bg-clip-text text-transparent pb-1 leading-tight">Nhiệm vụ Ngày</h2>
+                    <p className="text-white/40 text-sm font-medium">Hoàn thành để nhận thưởng Tiền USD và Kim Cương. (Reset mỗi ngày)</p>
+                </div>
 
-            <div className="space-y-4">
-                {user.dailyQuests.map(q => (
-                    <div key={q.id} className={`glass-card p-6 rounded-[32px] flex items-center justify-between border-2 transition-all ${q.claimed ? 'border-white/5 opacity-40' : q.completed ? 'border-green-500/50 bg-green-500/10' : 'border-white/5 opacity-60 hover:opacity-100'}`}>
-                        <div className="flex items-center gap-5">
-                            <div className={`p-4 rounded-2xl ${q.claimed ? 'bg-white/5 text-white/20' : q.completed ? 'bg-green-600 text-white' : 'bg-white/5 text-white/50'}`}>
-                                {q.type === 'login' ? <Calendar size={20}/> : q.type === 'answer' ? <Target size={20}/> : q.type === 'fix_error' ? <AlertCircle size={20}/> : <Flame size={20}/>}
-                            </div>
-                            <div>
-                                <h3 className={`font-black uppercase tracking-tight text-lg italic ${q.claimed ? 'text-white/20' : q.completed ? 'text-white' : 'text-white/50'}`}>{q.title}</h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className={`text-[10px] font-black uppercase ${q.claimed ? 'text-white/20' : 'text-blue-400'}`}>Thưởng: ${q.reward}</span>
-                                    <div className="w-1 h-1 rounded-full bg-white/20"></div>
-                                    <span className={`text-[10px] font-black uppercase ${q.claimed ? 'text-white/10' : 'text-white/30'}`}>Hằng ngày</span>
+                <div className="space-y-4">
+                    {user.dailyQuests.map(q => (
+                        <div key={q.id} className={`glass-card p-6 rounded-[32px] flex items-center justify-between border-2 transition-all ${q.claimed ? 'border-white/5 opacity-40' : q.completed ? 'border-green-500/50 bg-green-500/10' : 'border-white/5 opacity-60 hover:opacity-100'}`}>
+                            <div className="flex items-center gap-5">
+                                <div className={`p-4 rounded-2xl ${q.claimed ? 'bg-white/5 text-white/20' : q.completed ? 'bg-green-600 text-white' : 'bg-white/5 text-white/50'}`}>
+                                    {q.type === 'login' ? <Calendar size={20}/> : q.type === 'answer' ? <Target size={20}/> : q.type === 'fix_error' ? <AlertCircle size={20}/> : <Flame size={20}/>}
+                                </div>
+                                <div>
+                                    <h3 className={`font-black uppercase tracking-tight text-lg italic ${q.claimed ? 'text-white/20' : q.completed ? 'text-white' : 'text-white/50'}`}>{q.title}</h3>
+                                    <div className="flex flex-wrap items-center gap-3 mt-1">
+                                        <span className={`text-xs font-black uppercase ${q.claimed ? 'text-white/20' : 'text-yellow-400'}`}>+${q.reward}</span>
+                                        {!!q.rewardDiamonds && (
+                                            <>
+                                                <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                                                <span className={`text-xs font-black uppercase flex items-center gap-1 ${q.claimed ? 'text-white/20' : 'text-cyan-300'}`}>
+                                                    +{q.rewardDiamonds} <Gem size={12} className="inline" />
+                                                </span>
+                                            </>
+                                        )}
+                                        <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                                        <span className={`text-[10px] font-black uppercase ${q.claimed ? 'text-white/10' : 'text-white/30'}`}>Hằng ngày</span>
+                                    </div>
                                 </div>
                             </div>
+                            {q.claimed ? (
+                                <div className="flex items-center gap-2 text-white/20 font-black text-[10px] uppercase italic">
+                                    <CheckCircle2 size={12} /> Đã nhận
+                                </div>
+                            ) : q.completed ? (
+                                <button 
+                                    onClick={() => claimQuest(q.id)}
+                                    className="bg-green-500 hover:bg-green-400 text-white font-black text-xs uppercase italic px-6 py-2.5 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+                                >
+                                    Nhận thưởng
+                                </button>
+                            ) : (
+                                <div className="text-white/20 font-black text-[10px] uppercase italic">Đang thực hiện...</div>
+                            )}
                         </div>
-                        {q.claimed ? (
-                            <div className="flex items-center gap-2 text-white/20 font-black text-[10px] uppercase italic">
-                                <CheckCircle2 size={12} /> Đã nhận
-                            </div>
-                        ) : q.completed ? (
-                            <button 
-                                onClick={() => claimQuest(q.id)}
-                                className="bg-green-500 hover:bg-green-400 text-white font-black text-[10px] uppercase italic px-6 py-2 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all"
-                            >
-                                Nhận thưởng
-                            </button>
-                        ) : (
-                            <div className="text-white/20 font-black text-[10px] uppercase italic">Đang thực hiện...</div>
-                        )}
+                    ))}
+                </div>
+            </div>
+
+            {/* Seasonal Achievements Section */}
+            <div className="space-y-6 pt-6 border-t border-white/5">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                        <Trophy size={12} /> Hệ thống Mùa giải
                     </div>
-                ))}
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter bg-gradient-to-br from-white to-cyan-300 bg-clip-text text-transparent pb-1 leading-tight">Thành tựu Mùa</h2>
+                    <p className="text-white/40 text-sm font-medium">Cột mốc vinh quang mang lại lượng lớn Kim Cương. (Reset theo mùa)</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(user.achievements || []).map(ach => (
+                        <div key={ach.id} className={`glass-card p-5 rounded-[28px] flex flex-col justify-between border-2 transition-all relative overflow-hidden ${ach.claimed ? 'border-white/5 opacity-40' : ach.completed ? 'border-cyan-500/50 bg-cyan-500/5 group' : 'border-white/5 opacity-60 hover:opacity-100'}`}>
+                            {ach.completed && !ach.claimed && (
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2"></div>
+                            )}
+                            <div className="flex items-start gap-4 mb-4 relative z-10">
+                                <div className={`p-3 rounded-2xl shrink-0 mt-0.5 ${ach.claimed ? 'bg-white/5 text-white/20' : ach.completed ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30' : 'bg-white/5 text-white/40'}`}>
+                                    <Award size={20} />
+                                </div>
+                                <div>
+                                    <h3 className={`font-black uppercase tracking-tight text-base italic leading-tight mb-1 ${ach.claimed ? 'text-white/20' : ach.completed ? 'text-white' : 'text-white/70'}`}>{ach.title}</h3>
+                                    <p className="text-xs text-white/40 font-medium leading-relaxed">{ach.desc}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-3 border-t border-white/5 relative z-10 mt-auto">
+                                <div className="flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1 rounded-xl border border-cyan-500/20 text-cyan-300 font-black text-xs">
+                                    +{ach.rewardDiamonds} <Gem size={12} className="animate-pulse" />
+                                </div>
+
+                                {ach.claimed ? (
+                                    <div className="flex items-center gap-1 text-white/20 font-black text-[10px] uppercase italic">
+                                        <CheckCircle2 size={12} /> Đã nhận
+                                    </div>
+                                ) : ach.completed ? (
+                                    <button 
+                                        onClick={() => claimAchievement(ach.id)}
+                                        className="bg-cyan-500 hover:bg-cyan-400 text-white font-black text-xs uppercase italic px-5 py-2 rounded-xl shadow-lg shadow-cyan-500/20 active:scale-95 transition-all"
+                                    >
+                                        Nhận thưởng
+                                    </button>
+                                ) : (
+                                    <div className="text-white/20 font-black text-[10px] uppercase italic">Chưa đạt</div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 const Library = () => {
     const { user } = useGame();
@@ -1692,10 +1770,23 @@ const GameApp = () => {
                 <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/30">
                     <Factory size={24} className="text-white" />
                 </div>
-                <h1 className="text-2xl font-black uppercase tracking-tighter italic">TOEIC Factory</h1>
+                <h1 className="text-2xl font-black uppercase tracking-tighter italic hidden sm:block">TOEIC Factory</h1>
             </div>
-            <div className="flex items-center">
-                <button onClick={logout} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-red-500/20 hover:border-red-500/30 transition-all text-white active:scale-95">
+            <div className="flex items-center gap-4">
+                {/* Global Currency Display */}
+                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-1.5 text-yellow-400 font-mono font-black text-sm sm:text-base" title="Số dư Tiền USD">
+                        <Coins size={16} />
+                        <span>${user.balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                    </div>
+                    <div className="w-px h-4 bg-white/10"></div>
+                    <div className="flex items-center gap-1.5 text-cyan-400 font-mono font-black text-sm sm:text-base" title="Kim Cương">
+                        <Gem size={16} className="animate-pulse" />
+                        <span>{user.diamonds.toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <button onClick={logout} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-red-500/20 hover:border-red-500/30 transition-all text-white active:scale-95" title="Đăng xuất">
                     <LogOut size={20} />
                 </button>
             </div>
