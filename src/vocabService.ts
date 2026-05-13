@@ -12,6 +12,7 @@ import { chunkMochi, processChunkMochi } from './chunkMochi';
 import { chunkAdvanced, processChunkAdvanced } from './chunkAdvanced';
 import { chunkEasy } from './chunkEasy';
 import { chunkHardExtra } from './chunkHardExtra';
+import { chunkHard2 } from './chunkHard2';
 
 import { chunk11, processChunk11 } from './chunk11';
 import { chunk12, processChunk12 } from './chunk12';
@@ -198,6 +199,7 @@ const initialWordsWithPOS = initialWords.map(w => {
 
 const easyWordsWithPOS = chunkEasy.map(w => ({ ...w, pos: '(n)' as string }));
 const hardExtraWithPOS = chunkHardExtra.map(w => ({ ...w, pos: '(adj)' as string }));
+const hard2WithPOS = chunkHard2.map(w => ({ ...w, pos: '(adj)' as string }));
 
 const toeicCoreWords = [
   ...initialWordsWithPOS,
@@ -231,7 +233,8 @@ const toeicCoreWords = [
 const rawAllWords = [
   ...toeicCoreWords,
   ...easyWordsWithPOS,
-  ...hardExtraWithPOS
+  ...hardExtraWithPOS,
+  ...hard2WithPOS
 ];
 
 // Deduplicate by word (case insensitive)
