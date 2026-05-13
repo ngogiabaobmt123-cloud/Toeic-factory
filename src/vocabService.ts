@@ -14,6 +14,12 @@ import { chunkEasy } from './chunkEasy';
 import { chunkHardExtra } from './chunkHardExtra';
 import { chunkHard2 } from './chunkHard2';
 import { chunkHard3 } from './chunkHard3';
+import { processChunkInter1 } from './chunkInter1';
+import { processChunkInter2 } from './chunkInter2';
+import { processChunkInter3 } from './chunkInter3';
+import { processChunkInter4 } from './chunkInter4';
+import { processChunkInter5 } from './chunkInter5';
+import { processChunkInter6 } from './chunkInter6';
 
 import { chunk11, processChunk11 } from './chunk11';
 import { chunk12, processChunk12 } from './chunk12';
@@ -229,7 +235,13 @@ const toeicCoreWords = [
   ...processChunk21(),
   ...processChunk22(),
   ...processChunk23(),
-  ...processChunk24()
+  ...processChunk24(),
+  ...processChunkInter1(),
+  ...processChunkInter2(),
+  ...processChunkInter3(),
+  ...processChunkInter4(),
+  ...processChunkInter5(),
+  ...processChunkInter6()
 ];
 
 const rawAllWords = [
