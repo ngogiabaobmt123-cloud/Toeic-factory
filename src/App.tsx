@@ -230,6 +230,109 @@ const Auth = () => {
   );
 };
 
+interface FactoryThemeConfig {
+  gradient: string;
+  glow: string;
+  beltBg: string;
+  beltBorder: string;
+  textColor: string;
+  productEmoji: string;
+}
+
+const FACTORY_THEMES: Record<string, FactoryThemeConfig> = {
+  'f_noodle': {
+    gradient: 'from-orange-500 to-red-600',
+    glow: 'shadow-orange-500/30',
+    beltBg: 'bg-orange-500/15',
+    beltBorder: 'border-orange-500/30',
+    textColor: 'text-orange-400',
+    productEmoji: '🍜'
+  },
+  'f_sandal': {
+    gradient: 'from-pink-500 to-rose-600',
+    glow: 'shadow-pink-500/30',
+    beltBg: 'bg-pink-500/15',
+    beltBorder: 'border-pink-500/30',
+    textColor: 'text-pink-400',
+    productEmoji: '👟'
+  },
+  'f_milktea': {
+    gradient: 'from-emerald-400 to-teal-600',
+    glow: 'shadow-emerald-500/30',
+    beltBg: 'bg-emerald-500/15',
+    beltBorder: 'border-emerald-500/30',
+    textColor: 'text-emerald-400',
+    productEmoji: '🧋'
+  },
+  'f_bread': {
+    gradient: 'from-amber-400 to-orange-500',
+    glow: 'shadow-amber-500/30',
+    beltBg: 'bg-amber-500/15',
+    beltBorder: 'border-amber-500/30',
+    textColor: 'text-amber-400',
+    productEmoji: '🥖'
+  },
+  'f_omakase': {
+    gradient: 'from-rose-500 to-red-700',
+    glow: 'shadow-rose-500/30',
+    beltBg: 'bg-rose-500/15',
+    beltBorder: 'border-rose-500/30',
+    textColor: 'text-rose-400',
+    productEmoji: '🍣'
+  },
+  'f_english': {
+    gradient: 'from-purple-500 to-indigo-600',
+    glow: 'shadow-purple-500/30',
+    beltBg: 'bg-purple-500/15',
+    beltBorder: 'border-purple-500/30',
+    textColor: 'text-purple-400',
+    productEmoji: '🎓'
+  },
+  'f_beauty': {
+    gradient: 'from-fuchsia-500 to-pink-600',
+    glow: 'shadow-fuchsia-500/30',
+    beltBg: 'bg-fuchsia-500/15',
+    beltBorder: 'border-fuchsia-500/30',
+    textColor: 'text-fuchsia-400',
+    productEmoji: '💄'
+  },
+  'f_bank': {
+    gradient: 'from-yellow-400 to-amber-600',
+    glow: 'shadow-yellow-500/30',
+    beltBg: 'bg-yellow-500/15',
+    beltBorder: 'border-yellow-500/30',
+    textColor: 'text-yellow-400',
+    productEmoji: '💎'
+  },
+  'f_steel': {
+    gradient: 'from-slate-300 to-blue-400',
+    glow: 'shadow-blue-400/30',
+    beltBg: 'bg-blue-400/15',
+    beltBorder: 'border-blue-400/30',
+    textColor: 'text-blue-300',
+    productEmoji: '🚀'
+  },
+  'f_chip': {
+    gradient: 'from-cyan-400 to-blue-600',
+    glow: 'shadow-cyan-500/30',
+    beltBg: 'bg-cyan-500/15',
+    beltBorder: 'border-cyan-500/30',
+    textColor: 'text-cyan-400',
+    productEmoji: '🔬'
+  }
+};
+
+const getFactoryTheme = (id: string): FactoryThemeConfig => {
+  return FACTORY_THEMES[id] || {
+    gradient: 'from-blue-500 to-purple-600',
+    glow: 'shadow-blue-500/30',
+    beltBg: 'bg-blue-500/15',
+    beltBorder: 'border-blue-500/30',
+    textColor: 'text-blue-400',
+    productEmoji: '📦'
+  };
+};
+
 
 const Dashboard = () => {
   const { user, factorySeconds, myRank, taxSubRate, collectIncome } = useGame();
@@ -447,100 +550,191 @@ const Dashboard = () => {
                         </button>
                     )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {user.factories.map(f => {
                          const isCapitalistActive = !!user.capitalistBuffExpiresAt && user.capitalistBuffExpiresAt > Date.now();
                          const upgradedBaseIncome = f.baseIncome * (1 + (f.upgradeLevel || 0) * 0.25);
                          const factoryIncome = upgradedBaseIncome * (1 + bonus/100 + taxSubRate + (isCapitalistActive ? 0.5 : 0));
+                         const theme = getFactoryTheme(f.id);
+                         const maxStorage = f.cost * 0.25 * (1 + (f.storageUpgradeLevel || 0));
+                         const currentUncollected = f.uncollectedIncome || 0;
+                         const isFull = currentUncollected >= maxStorage - 0.001;
+
                          return (
-                            <div key={f.id} className={`glass-card p-5 rounded-3xl border group ${isCapitalistActive ? 'border-purple-500/20 bg-purple-500/5' : 'border-white/5'}`}>
-                               <div className="flex items-center justify-between mb-3">
+                            <motion.div 
+                               key={f.id} 
+                               whileHover={{ scale: 1.01 }}
+                               transition={{ duration: 0.2 }}
+                               className={`glass-card p-5 rounded-3xl border group relative overflow-hidden transition-all duration-300 ${isCapitalistActive ? 'border-purple-500/30 bg-purple-500/5' : 'border-white/10 hover:border-white/20'}`}
+                            >
+                               {/* Subtle header glow */}
+                               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${theme.gradient} opacity-5 rounded-full blur-2xl group-hover:opacity-15 transition-opacity pointer-events-none`} />
+
+                               <div className="flex items-center justify-between mb-4 relative z-10">
                                   <div className="flex items-center gap-3">
-                                     <div className="p-2 bg-white/5 rounded-xl">
-                                        <FactoryIcon name={f.iconName} size={18} className={isCapitalistActive ? 'text-purple-400' : 'text-white'} />
+                                     <div className={`p-2 rounded-xl border bg-gradient-to-br ${theme.gradient} shadow-md ${theme.glow} border-white/20`}>
+                                        <FactoryIcon name={f.iconName} size={18} className="text-white" />
                                      </div>
                                      <div>
                                         <div className="font-black text-sm uppercase italic tracking-tight flex items-center gap-2">
                                             {f.name}
                                             {isCapitalistActive && (
-                                                <span className="text-[8px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-md border border-purple-500/30 font-black whitespace-nowrap">
+                                                <span className="text-[8px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-md border border-purple-500/30 font-black whitespace-nowrap animate-pulse">
                                                     +50% Buff
                                                 </span>
                                             )}
                                         </div>
+                                        <div className="text-[9px] font-bold text-white/50 flex items-center gap-2">
+                                            <span>Sản lượng: <span className="text-green-400 font-mono">+${factoryIncome.toFixed(2)}</span>/phút</span>
+                                        </div>
                                      </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="text-sm font-black text-green-400 leading-none">
-                                        +${factoryIncome.toFixed(2)}
-                                    </div>
-                                    <div className="text-[8px] opacity-40 font-black uppercase italic mt-0.5">Hiệu dụng</div>
                                   </div>
                                </div>
 
-                               {(() => {
-                                   const maxStorage = f.cost * 0.25 * (1 + (f.storageUpgradeLevel || 0));
-                                   const currentUncollected = f.uncollectedIncome || 0;
-                                   const isFull = currentUncollected >= maxStorage - 0.001;
-                                   
-                                   return (
-                                       <>
-                                           {isFull ? (
-                                               <div className="flex flex-col gap-1 items-center justify-center p-2 rounded-xl bg-orange-500/10 border border-orange-500/20 mb-2">
-                                                   <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest">KHO ĐẦY</span>
-                                                   <span className="text-[8px] font-medium text-orange-400/60 uppercase">Đang ngừng sản xuất</span>
-                                               </div>
-                                           ) : (
-                                               <>
-                                                   <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/10 mb-1">
-                                                      <motion.div 
-                                                          initial={false}
-                                                          animate={{ width: `${(factorySeconds / 60) * 100}%` }}
-                                                          className={`h-full ${isCapitalistActive ? 'bg-purple-400/50' : 'bg-white/30'}`}
-                                                          transition={{ duration: 0.1 }}
-                                                      ></motion.div>
-                                                   </div>
-                                                   <div className="flex justify-between text-[8px] font-black text-white/20 uppercase italic">
-                                                      <span>Tiến độ sản xuất</span>
-                                                      <span>{60 - factorySeconds}s</span>
-                                                   </div>
-                                               </>
-                                           )}
-                                           
-                                           <div className="mt-4 pt-4 border-t border-white/5">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="text-[10px] font-black uppercase text-blue-400/80">Kho chứa dự trữ</span>
-                                                    <span className="text-[10px] font-black uppercase text-white/50">${maxStorage.toFixed(2)} (Tối đa)</span>
-                                                </div>
-                                                <div className="flex items-end justify-between mb-2">
-                                                    <div className="text-lg font-black text-white">
-                                                        ${currentUncollected.toFixed(2)}
-                                                    </div>
-                                                </div>
-                                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mb-3 border border-white/5 relative">
-                                                    <div className="absolute top-0 bottom-0 left-0 bg-blue-500 transition-all duration-1000" style={{ width: `${Math.min((currentUncollected / maxStorage) * 100, 100)}%` }}>
-                                                        {!isFull && <div className="absolute inset-0 bg-white/20 w-full animate-pulse"></div>}
-                                                    </div>
-                                                </div>
-                                                <button 
-                                                    onClick={() => collectIncome(f.id)}
-                                                    disabled={currentUncollected <= 0}
-                                                    className={`w-full py-2.5 rounded-xl font-black uppercase text-[10px] transition-all shadow-lg flex items-center justify-center gap-2 ${
-                                                    currentUncollected <= 0 
-                                                    ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
-                                                    : isFull
-                                                    ? 'bg-orange-600 text-white hover:bg-orange-500 shadow-orange-500/20 active:scale-95 border border-orange-500/50'
-                                                    : 'bg-green-600 text-white hover:bg-green-500 shadow-green-500/20 active:scale-95 border border-green-500/50'
-                                                    }`}
-                                                >
-                                                    <Coins size={14} className={currentUncollected <= 0 ? 'opacity-30' : ''} />
-                                                    Thu hoạch
-                                                </button>
+                               {/* 1. ANIMATED CONVEYOR BELT */}
+                               <div className="relative z-10">
+                                   <div className={`relative w-full h-12 rounded-2xl ${theme.beltBg} border ${theme.beltBorder} overflow-hidden flex items-center shadow-inner`}>
+                                       {/* Behind belt: factory-colored glow/shadow */}
+                                       <div className={`absolute inset-0 bg-gradient-to-r ${theme.gradient} opacity-10`} />
+
+                                       {/* Conveyor belt loop track line texture */}
+                                       <motion.div 
+                                           className="absolute inset-0 opacity-25 pointer-events-none"
+                                           style={{
+                                               backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 12px, rgba(255,255,255,0.3) 12px, rgba(255,255,255,0.3) 24px)',
+                                               backgroundSize: '200% 100%'
+                                           }}
+                                           animate={{ backgroundPositionX: isFull ? '0%' : ['0%', '100%'] }}
+                                           transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                                       />
+
+                                       {/* Moving Products */}
+                                       {!isFull ? (
+                                           [0, 1, 2].map((idx) => (
+                                               <motion.div
+                                                   key={idx}
+                                                   className="absolute left-0 flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                                                   initial={{ x: `${idx * 35 - 20}%` }}
+                                                   animate={{ x: [`${idx * 35 - 20}%`, `${idx * 35 + 85}%`] }}
+                                                   transition={{
+                                                       repeat: Infinity,
+                                                       duration: 3.5,
+                                                       ease: "linear"
+                                                   }}
+                                               >
+                                                   <span className="text-xl transform -rotate-12 select-none inline-block animate-bounce" style={{ animationDuration: '2s' }}>
+                                                       {theme.productEmoji}
+                                                   </span>
+                                               </motion.div>
+                                           ))
+                                       ) : (
+                                           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[1px] z-20">
+                                               <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase animate-pulse">
+                                                   ⚠️ KHO ĐẦY - DỪNG BĂNG CHUYỀN
+                                               </span>
                                            </div>
-                                       </>
-                                   );
-                               })()}
-                            </div>
+                                       )}
+
+                                       {/* Spark particles at the end */}
+                                       {!isFull && (
+                                           <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                                               <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-yellow-300 opacity-80"></span>
+                                               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-400"></span>
+                                           </div>
+                                       )}
+
+                                       {/* Overlay info directly on belt */}
+                                       <div className="absolute inset-x-0 bottom-0 bg-black/50 backdrop-blur-[1px] px-2 py-0.5 flex justify-between items-center text-[8px] font-black tracking-wider text-white/90 z-20 border-t border-white/5">
+                                           <span className={theme.textColor}>CẤP ĐỘ MÁY: {1 + (f.upgradeLevel || 0)}</span>
+                                           <span className="font-mono text-yellow-300 flex items-center gap-1">
+                                               ⏱️ {60 - factorySeconds}s
+                                           </span>
+                                       </div>
+                                   </div>
+                               </div>
+
+                               {/* 2. WAREHOUSE STORAGE VISUAL */}
+                               <div className={`mt-3 p-3 rounded-2xl bg-gradient-to-b from-white/[0.03] to-white/[0.08] border border-white/10 relative overflow-hidden group/storage transition-all duration-300 ${theme.glow}`}>
+                                   {/* Container inner glow */}
+                                   <div className={`absolute inset-0 bg-gradient-to-r ${theme.gradient} opacity-5 group-hover/storage:opacity-10 transition-opacity pointer-events-none`} />
+
+                                   <div className="flex items-center justify-between relative z-10 mb-2">
+                                       <div className="flex items-center gap-1.5">
+                                           <span className="text-xs">📦</span>
+                                           <span className={`text-[9px] font-black uppercase tracking-wider ${theme.textColor}`}>
+                                               Thùng hàng dự trữ
+                                           </span>
+                                       </div>
+                                       <span className="text-[9px] font-black text-white/40 uppercase font-mono">
+                                           Tối đa: ${maxStorage.toFixed(2)}
+                                       </span>
+                                   </div>
+
+                                   {/* Cute Container Box representation */}
+                                   <motion.div 
+                                       key={Math.floor(currentUncollected * 2)} // subtle bounce trigger
+                                       initial={{ scale: 1 }}
+                                       animate={{ scale: [1, 1.015, 1] }}
+                                       transition={{ duration: 0.25 }}
+                                       className={`w-full h-14 rounded-xl border-2 border-dashed ${theme.beltBorder} bg-black/30 flex flex-col justify-end p-1 relative overflow-hidden shadow-inner`}
+                                   >
+                                       {/* Optional inside sparkle particles */}
+                                       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-25">
+                                           <div className="absolute top-1 left-3 w-1 h-1 bg-white rounded-full animate-ping" />
+                                           <div className="absolute top-2 right-4 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse" />
+                                           <div className="absolute bottom-3 left-1/2 w-1 h-1 bg-cyan-300 rounded-full animate-bounce" />
+                                       </div>
+
+                                       {/* Items stacked inside (visual pile of products) */}
+                                       <div className="absolute inset-x-0 bottom-1 flex flex-wrap-reverse items-center justify-center gap-1 px-2 max-h-full overflow-hidden opacity-60 select-none pointer-events-none">
+                                           {Array.from({ length: Math.min(14, Math.ceil((currentUncollected / maxStorage) * 14)) }).map((_, i) => (
+                                               <span 
+                                                   key={i}
+                                                   className="text-xs inline-block filter drop-shadow transform scale-90"
+                                                   style={{ transform: `rotate(${(i * 55) % 60 - 30}deg)` }}
+                                               >
+                                                   {theme.productEmoji}
+                                               </span>
+                                           ))}
+                                       </div>
+
+                                       {/* Number badge floating showing current storage count */}
+                                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px] z-10">
+                                           <span className={`text-base font-black tracking-tight drop-shadow-md font-mono ${isFull ? 'text-orange-400 animate-pulse scale-105' : 'text-white'}`}>
+                                               ${currentUncollected.toFixed(2)}
+                                           </span>
+                                       </div>
+
+                                       {/* Bottom fill glow bar */}
+                                       <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/5 z-20">
+                                           <div 
+                                               className={`h-full bg-gradient-to-r ${theme.gradient} transition-all duration-500 relative`}
+                                               style={{ width: `${Math.min((currentUncollected / maxStorage) * 100, 100)}%` }}
+                                           >
+                                               {!isFull && <div className="absolute inset-0 bg-white/30 animate-pulse" />}
+                                           </div>
+                                       </div>
+                                   </motion.div>
+
+                                   {/* Upgrade button / Collect action */}
+                                   <motion.button 
+                                       whileHover={{ scale: currentUncollected > 0 ? 1.03 : 1 }}
+                                       whileTap={{ scale: currentUncollected > 0 ? 0.95 : 1 }}
+                                       onClick={() => collectIncome(f.id)}
+                                       disabled={currentUncollected <= 0}
+                                       className={`w-full mt-2.5 py-2.5 rounded-xl font-black uppercase text-[10px] transition-all flex items-center justify-center gap-2 tracking-wider ${
+                                           currentUncollected <= 0 
+                                           ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5 shadow-none'
+                                           : isFull
+                                           ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30 border border-orange-400/40 animate-pulse'
+                                           : `bg-gradient-to-r ${theme.gradient} text-white shadow-lg ${theme.glow} border border-white/20`
+                                       }`}
+                                   >
+                                       <Coins size={14} className={currentUncollected <= 0 ? 'opacity-30' : 'animate-bounce'} style={{ animationDuration: '2s' }} />
+                                       {isFull ? '⚡ THU HOẠCH NGAY (KHO ĐẦY)' : 'THU HOẠCH THÀNH PHẨM'}
+                                   </motion.button>
+                               </div>
+                            </motion.div>
                          )
                     })}
                 </div>

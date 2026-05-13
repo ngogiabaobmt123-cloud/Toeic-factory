@@ -38,8 +38,6 @@ import { processChunk21 } from './chunk21';
 import { processChunk22 } from './chunk22';
 import { processChunk23 } from './chunk23';
 import { processChunk24 } from './chunk24';
-import { chunkEasy } from './chunkEasy';
-import { chunkHardExtra } from './chunkHardExtra';
 
 export const initialWords: Word[] = [
   { id: '1', word: 'achieve', meaning: 'đạt được', example: 'We expect to achieve our targets.', exampleVN: 'Chúng tôi mong đợi đạt được các mục tiêu của mình.' },
