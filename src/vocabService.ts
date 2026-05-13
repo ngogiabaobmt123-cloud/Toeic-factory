@@ -25,6 +25,8 @@ import { processChunk21 } from './chunk21';
 import { processChunk22 } from './chunk22';
 import { processChunk23 } from './chunk23';
 import { processChunk24 } from './chunk24';
+import { chunkEasy } from './chunkEasy';
+import { chunkHardExtra } from './chunkHardExtra';
 
 export const initialWords: Word[] = [
   { id: '1', word: 'achieve', meaning: 'đạt được', example: 'We expect to achieve our targets.', exampleVN: 'Chúng tôi mong đợi đạt được các mục tiêu của mình.' },
@@ -192,7 +194,7 @@ const initialWordsWithPOS = initialWords.map(w => {
   return { ...w, pos };
 });
 
-const rawAllWords = [
+const toeicCoreWords = [
   ...initialWordsWithPOS,
   ...processChunk2(),
   ...processChunk3(),
@@ -221,6 +223,12 @@ const rawAllWords = [
   ...processChunk24()
 ];
 
+const rawAllWords = [
+  ...chunkEasy,
+  ...toeicCoreWords,
+  ...chunkHardExtra
+];
+
 // Deduplicate by word (case insensitive)
 const uniqueMap = new Map<string, Word>();
 rawAllWords.forEach(w => {
@@ -232,9 +240,15 @@ rawAllWords.forEach(w => {
 
 export const ALL_WORDS = Array.from(uniqueMap.values());
 
-export const EASY_WORDS = ALL_WORDS.slice(0, 400);
-export const INTERMEDIATE_WORDS = ALL_WORDS.slice(400, 2000);
-export const HARD_WORDS = ALL_WORDS.slice(2000);
+export const EASY_WORDS = chunkEasy;
+export const HARD_WORDS = chunkHardExtra;
+// Intermediate is everything else from the core TOEIC list
+export const INTERMEDIATE_WORDS = toeicCoreWords.filter(w => {
+  const key = w.word.toLowerCase().trim();
+  // Ensure we don't include words already in Easy or Hard for Intermediate
+  return !chunkEasy.some(e => e.word.toLowerCase().trim() === key) && 
+         !chunkHardExtra.some(h => h.word.toLowerCase().trim() === key);
+});
 
 export const getWordsByDifficulty = (level?: 'easy' | 'intermediate' | 'hard'): Word[] => {
   if (level === 'easy') return EASY_WORDS;
