@@ -238,3 +238,32 @@ h1, h2, h3, h4 {
   line-height: 1;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
 }
+
+@keyframes streamProduct {
+  0% { left: -20%; transform: rotate(-12deg); }
+  100% { left: 100%; transform: rotate(-12deg); }
+}
+
+.animate-stream-0 {
+  position: absolute;
+  top: 50%;
+  margin-top: -14px;
+  animation: streamProduct 4s linear infinite;
+  z-index: 10;
+}
+.animate-stream-1 {
+  position: absolute;
+  top: 50%;
+  margin-top: -14px;
+  animation: streamProduct 4s linear infinite;
+  animation-delay: -1.33s;
+  z-index: 10;
+}
+.animate-stream-2 {
+  position: absolute;
+  top: 50%;
+  margin-top: -14px;
+  animation: streamProduct 4s linear infinite;
+  animation-delay: -2.66s;
+  z-index: 10;
+}

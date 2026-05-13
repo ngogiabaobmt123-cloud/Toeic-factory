@@ -62,7 +62,7 @@ export const playAudio = (text: string) => {
 // Emoji helper for factories - using widely-supported emojis
 const FACTORY_EMOJI: Record<string, string> = {
     'Soup': '🍜',           // Mì Tôm
-    'Footprints': '👟',     // Dép tổ ong → giày
+    'Footprints': '🩴',     // Dép tổ ong
     'Coffee': '🧋',         // Trà sữa
     'Croissant': '🥖',      // Bánh mì Sài Gòn
     'Landmark': '🏦',       // Ngân hàng
@@ -254,7 +254,7 @@ const FACTORY_THEMES: Record<string, FactoryThemeConfig> = {
     beltBg: 'bg-pink-500/15',
     beltBorder: 'border-pink-500/30',
     textColor: 'text-pink-400',
-    productEmoji: '👟'
+    productEmoji: '🩴'
   },
   'f_milktea': {
     gradient: 'from-emerald-400 to-teal-600',
@@ -611,22 +611,14 @@ const Dashboard = () => {
                                        {/* Moving Products */}
                                        {!isFull ? (
                                            [0, 1, 2].map((idx) => (
-                                               <motion.div
+                                               <div
                                                    key={idx}
-                                                   className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] z-10"
-                                                   style={{ left: '-20%' }}
-                                                   animate={{ left: ['-20%', '100%'] }}
-                                                   transition={{
-                                                       repeat: Infinity,
-                                                       duration: 4,
-                                                       delay: idx * (4 / 3),
-                                                       ease: "linear"
-                                                   }}
+                                                   className={`animate-stream-${idx}`}
                                                >
-                                                   <span className="text-2xl transform -rotate-12 select-none inline-block animate-bounce" style={{ animationDuration: '1.5s' }}>
+                                                   <span className="text-2xl transform -rotate-12 select-none inline-block animate-bounce filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" style={{ animationDuration: '1.5s' }}>
                                                        {theme.productEmoji}
                                                    </span>
-                                               </motion.div>
+                                               </div>
                                            ))
                                        ) : (
                                            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[1px] z-20">
