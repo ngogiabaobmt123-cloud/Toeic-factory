@@ -159,8 +159,8 @@ const Auth = () => {
         <div className="text-center mb-8">
           <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="inline-block mb-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-blue-500 rounded-3xl blur-xl opacity-40"></div>
-              <div className="relative p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl shadow-blue-500/30">
+              <div className="absolute inset-0 bg-purple-500 rounded-3xl blur-xl opacity-40"></div>
+              <div className="relative p-5 rounded-3xl bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 shadow-2xl shadow-purple-500/30">
                 <span className="text-4xl">🏭</span>
               </div>
             </div>
@@ -208,7 +208,7 @@ const Auth = () => {
             </AnimatePresence>
 
             <button type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-black py-4 rounded-2xl uppercase mt-4 shadow-xl shadow-blue-500/30 transition-all active:scale-95 text-sm tracking-wider"
+              className="w-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black py-4 rounded-2xl uppercase mt-4 shadow-xl shadow-purple-500/30 transition-all active:scale-95 text-sm tracking-wider"
             >
               {isRegister ? '🚀 Khởi tạo đế chế' : '⚡ Truy cập nhà máy'}
             </button>
@@ -348,9 +348,9 @@ const Dashboard = () => {
     <div className="space-y-8 animate-slide-up">
       {/* Top Status Header */}
       <div className="glass p-6 rounded-[32px] border border-white/10 flex flex-wrap items-center justify-between gap-6 card-shine relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-r from-cyan-500 to-pink-500 opacity-15 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
         <div className="flex items-center gap-4 relative z-10">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 text-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 text-2xl">
                 👤
             </div>
             <div>
@@ -398,7 +398,7 @@ const Dashboard = () => {
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
-                    className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full"
                     transition={{ type: 'spring', damping: 20, stiffness: 100 }}
                   ></motion.div>
                </div>
@@ -613,16 +613,17 @@ const Dashboard = () => {
                                            [0, 1, 2].map((idx) => (
                                                <motion.div
                                                    key={idx}
-                                                   className="absolute left-0 flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
-                                                   initial={{ x: `${idx * 35 - 20}%` }}
-                                                   animate={{ x: [`${idx * 35 - 20}%`, `${idx * 35 + 85}%`] }}
+                                                   className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] z-10"
+                                                   style={{ left: '-20%' }}
+                                                   animate={{ left: ['-20%', '100%'] }}
                                                    transition={{
                                                        repeat: Infinity,
-                                                       duration: 3.5,
+                                                       duration: 4,
+                                                       delay: idx * (4 / 3),
                                                        ease: "linear"
                                                    }}
                                                >
-                                                   <span className="text-xl transform -rotate-12 select-none inline-block animate-bounce" style={{ animationDuration: '2s' }}>
+                                                   <span className="text-2xl transform -rotate-12 select-none inline-block animate-bounce" style={{ animationDuration: '1.5s' }}>
                                                        {theme.productEmoji}
                                                    </span>
                                                </motion.div>
