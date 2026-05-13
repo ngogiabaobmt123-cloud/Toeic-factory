@@ -10,6 +10,8 @@ import { chunk9, processChunk9 } from './chunk9';
 import { chunk10, processChunk10 } from './chunk10';
 import { chunkMochi, processChunkMochi } from './chunkMochi';
 import { chunkAdvanced, processChunkAdvanced } from './chunkAdvanced';
+import { chunkEasy } from './chunkEasy';
+import { chunkHardExtra } from './chunkHardExtra';
 
 import { chunk11, processChunk11 } from './chunk11';
 import { chunk12, processChunk12 } from './chunk12';
@@ -194,6 +196,9 @@ const initialWordsWithPOS = initialWords.map(w => {
   return { ...w, pos };
 });
 
+const easyWordsWithPOS = chunkEasy.map(w => ({ ...w, pos: '(n)' as string }));
+const hardExtraWithPOS = chunkHardExtra.map(w => ({ ...w, pos: '(adj)' as string }));
+
 const toeicCoreWords = [
   ...initialWordsWithPOS,
   ...processChunk2(),
@@ -224,9 +229,9 @@ const toeicCoreWords = [
 ];
 
 const rawAllWords = [
-  ...chunkEasy,
   ...toeicCoreWords,
-  ...chunkHardExtra
+  ...easyWordsWithPOS,
+  ...hardExtraWithPOS
 ];
 
 // Deduplicate by word (case insensitive)
@@ -240,15 +245,11 @@ rawAllWords.forEach(w => {
 
 export const ALL_WORDS = Array.from(uniqueMap.values());
 
-export const EASY_WORDS = chunkEasy;
-export const HARD_WORDS = chunkHardExtra;
-// Intermediate is everything else from the core TOEIC list
-export const INTERMEDIATE_WORDS = toeicCoreWords.filter(w => {
-  const key = w.word.toLowerCase().trim();
-  // Ensure we don't include words already in Easy or Hard for Intermediate
-  return !chunkEasy.some(e => e.word.toLowerCase().trim() === key) && 
-         !chunkHardExtra.some(h => h.word.toLowerCase().trim() === key);
-});
+// Classify words by difficulty using ID prefix
+// e* = easy (A1-A2), a*/h* = hard (C1+), everything else = intermediate (B1-B2)
+export const EASY_WORDS = ALL_WORDS.filter(w => w.id.startsWith('e'));
+export const HARD_WORDS = ALL_WORDS.filter(w => w.id.startsWith('a') || w.id.startsWith('h'));
+export const INTERMEDIATE_WORDS = ALL_WORDS.filter(w => !w.id.startsWith('e') && !w.id.startsWith('a') && !w.id.startsWith('h'));
 
 export const getWordsByDifficulty = (level?: 'easy' | 'intermediate' | 'hard'): Word[] => {
   if (level === 'easy') return EASY_WORDS;
