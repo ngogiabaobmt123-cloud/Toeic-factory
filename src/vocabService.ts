@@ -14,6 +14,8 @@ import { chunkEasy } from './chunkEasy';
 import { chunkHardExtra } from './chunkHardExtra';
 import { chunkHard2 } from './chunkHard2';
 import { chunkHard3 } from './chunkHard3';
+import { chunkHard4 } from './chunkHard4';
+import { chunkHard5 } from './chunkHard5';
 import { processChunkInter1 } from './chunkInter1';
 import { processChunkInter2 } from './chunkInter2';
 import { processChunkInter3 } from './chunkInter3';
@@ -209,6 +211,8 @@ const easyWordsWithPOS = chunkEasy.map(w => ({ ...w, pos: '(n)' as string }));
 const hardExtraWithPOS = chunkHardExtra.map(w => ({ ...w, pos: '(adj)' as string }));
 const hard2WithPOS = chunkHard2.map(w => ({ ...w, pos: '(adj)' as string }));
 const hard3WithPOS = chunkHard3.map(w => ({ ...w, pos: '(adj)' as string }));
+const hard4WithPOS = chunkHard4.map(w => ({ ...w, pos: '(adj)' as string }));
+const hard5WithPOS = chunkHard5.map(w => ({ ...w, pos: '(adj)' as string }));
 
 const toeicCoreWords = [
   ...initialWordsWithPOS,
@@ -251,7 +255,9 @@ const rawAllWords = [
   ...easyWordsWithPOS,
   ...hardExtraWithPOS,
   ...hard2WithPOS,
-  ...hard3WithPOS
+  ...hard3WithPOS,
+  ...hard4WithPOS,
+  ...hard5WithPOS
 ];
 
 // Deduplicate by word (case insensitive)
