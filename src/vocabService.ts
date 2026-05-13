@@ -20,6 +20,7 @@ import { processChunkInter3 } from './chunkInter3';
 import { processChunkInter4 } from './chunkInter4';
 import { processChunkInter5 } from './chunkInter5';
 import { processChunkInter6 } from './chunkInter6';
+import { processChunkInter7 } from './chunkInter7';
 
 import { chunk11, processChunk11 } from './chunk11';
 import { chunk12, processChunk12 } from './chunk12';
@@ -241,7 +242,8 @@ const toeicCoreWords = [
   ...processChunkInter3(),
   ...processChunkInter4(),
   ...processChunkInter5(),
-  ...processChunkInter6()
+  ...processChunkInter6(),
+  ...processChunkInter7()
 ];
 
 const rawAllWords = [
